@@ -14,9 +14,9 @@ public class ModEntityTypes {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, HongozMod.MOD_ID);
 
     public static final RegistryObject<EntityType<ZhongoEntity>> ZHONGO =
-            ENTITY_TYPES.register("zhongo_entity", () -> EntityType.Builder.of(ZhongoEntity::new, MobCategory.MONSTER)
+            ENTITY_TYPES.register("zhongo", () -> EntityType.Builder.of(ZhongoEntity::new, MobCategory.MONSTER)
                     .sized(0.4f, 2.0f)
-                    .build(new ResourceLocation(HongozMod.MOD_ID, "zhongo_entity").toString()));
+                    .build(new ResourceLocation(HongozMod.MOD_ID, "zhongo").toString()));
 
     public static void register(IEventBus eventBus) {
         ENTITY_TYPES.register(eventBus);
