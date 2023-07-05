@@ -1,0 +1,51 @@
+{
+  "zhongo_idle": {
+    "subtitle": "sounds.hongoz.zhongo_idle",
+    "category": "neutral",
+    "sounds": [
+      "hongoz:zhongo_idle"
+    ]
+  },
+  "zhongo_hurt": {
+    "subtitle": "sounds.hongoz.zhongo_hurt",
+    "category": "neutral",
+    "sounds": [
+      "hongoz:zhongo_hurt"
+    ]
+  },
+  "zhongo_death": {
+    "subtitle": "sounds.hongoz.zhongo_death",
+    "category": "neutral",
+    "sounds": [
+      "hongoz:zhongo_death"
+    ]
+  },
+  "horden_death": {
+    "subtitle": "sounds.hongoz.horden_death",
+    "category": "neutral",
+    "sounds": [
+      "hongoz:horden_death"
+    ]
+  },
+  "horden_hurt": {
+    "subtitle": "sounds.hongoz.horden_hurt",
+    "category": "neutral",
+    "sounds": [
+      "hongoz:horden_hurt"
+    ]
+  },
+  "horden_idle": {
+    "subtitle": "sounds.hongoz.horden_idle",
+    "category": "neutral",
+    "sounds": [
+      "hongoz:horden_idle"
+    ]
+  },
+  "horden_step": {
+    "subtitle": "sounds.hongoz.horden_step",
+    "category": "neutral",
+    "sounds": [
+      "hongoz:horden_step"
+    ]
+  }
+}
