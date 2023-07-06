@@ -1,0 +1,12 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": {
+    "type": "forge:any"
+  },
+  "spawners": {
+    "type": "hongoz:croaktar",
+    "weight": 10,
+    "minCount": 2,
+    "maxCount": 3
+  }
+}

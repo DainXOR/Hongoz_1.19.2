@@ -1,0 +1,12 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": {
+    "type": "forge:any"
+  },
+  "spawners": {
+    "type": "hongoz:zhongo",
+    "weight": 70,
+    "minCount": 6,
+    "maxCount": 10
+  }
+}
