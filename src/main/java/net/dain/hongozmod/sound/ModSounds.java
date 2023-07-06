@@ -15,6 +15,11 @@ public class ModSounds {
     public static final RegistryObject<SoundEvent> ZHONGO_HURT = registerSoundEvent("zhongo_hurt");
     public static final RegistryObject<SoundEvent> ZHONGO_DEATH = registerSoundEvent("zhongo_death");
 
+    public static final RegistryObject<SoundEvent> HORDEN_AMBIENT = registerSoundEvent("horden_idle");
+    public static final RegistryObject<SoundEvent> HORDEN_STEP = registerSoundEvent("horden_step");
+    public static final RegistryObject<SoundEvent> HORDEN_HURT = registerSoundEvent("horden_hurt");
+    public static final RegistryObject<SoundEvent> HORDEN_DEATH = registerSoundEvent("horden_death");
+
     //public static final ForgeSoundType TEST_SOUNDS = new ForgeSoundType(1.0f, 1.0f, ModSounds.TEST_SOUND_1, ModSounds.TEST_SOUND_2, ModSounds.TEST_SOUND_3,);
 
     public static RegistryObject<SoundEvent> registerSoundEvent(String name){

@@ -17,5 +17,4 @@ public class ZhongoRenderer extends GeoEntityRenderer<ZhongoEntity> {
     public ResourceLocation getTextureLocation(ZhongoEntity animatable) {
         return new ResourceLocation(HongozMod.MOD_ID, "textures/entity/zhongo.png");
     }
-
 }

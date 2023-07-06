@@ -2,8 +2,10 @@ package net.dain.hongozmod;
 
 import com.mojang.logging.LogUtils;
 import net.dain.hongozmod.entity.ModEntityTypes;
+import net.dain.hongozmod.entity.client.CroaktarRenderer;
+import net.dain.hongozmod.entity.client.HonziadeRenderer;
+import net.dain.hongozmod.entity.client.HordenRenderer;
 import net.dain.hongozmod.entity.client.ZhongoRenderer;
-import net.dain.hongozmod.entity.custom.ZhongoEntity;
 import net.dain.hongozmod.item.ModItems;
 import net.dain.hongozmod.sound.ModSounds;
 import net.minecraft.client.renderer.entity.EntityRenderers;
@@ -49,6 +51,9 @@ public class HongozMod {
         public static void onClientSetup(FMLClientSetupEvent event)
         {
             EntityRenderers.register(ModEntityTypes.ZHONGO.get(), ZhongoRenderer::new);
+            EntityRenderers.register(ModEntityTypes.HORDEN.get(), HordenRenderer::new);
+            EntityRenderers.register(ModEntityTypes.CROAKTAR.get(), CroaktarRenderer::new);
+            EntityRenderers.register(ModEntityTypes.HONZIADE.get(), HonziadeRenderer::new);
         }
     }
 }
