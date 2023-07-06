@@ -8,6 +8,7 @@ import net.dain.hongozmod.entity.custom.ZhongoEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -24,6 +25,8 @@ public class ModEntityTypes {
     public static final RegistryObject<EntityType<HordenEntity>> HORDEN =
             ENTITY_TYPES.register("horden", () -> EntityType.Builder.of(HordenEntity::new, MobCategory.MONSTER)
                     .sized(2.0f, 2.4f)
+                    .fireImmune()
+                    .immuneTo(Blocks.LAVA)
                     .build(new ResourceLocation(HongozMod.MOD_ID, "horden").toString()));
 
     public static final RegistryObject<EntityType<CroaktarEntity>> CROAKTAR =

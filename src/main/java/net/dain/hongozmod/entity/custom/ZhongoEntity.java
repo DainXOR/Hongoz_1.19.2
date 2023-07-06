@@ -37,7 +37,7 @@ public class ZhongoEntity extends Monster implements IAnimatable {
 
     public ZhongoEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-        playSound(SoundEvents.LIGHTNING_BOLT_THUNDER);
+        this.xpReward = 15;
     }
 
     public static AttributeSupplier setAttributes(){
@@ -45,7 +45,7 @@ public class ZhongoEntity extends Monster implements IAnimatable {
                 .add(Attributes.MAX_HEALTH, 50.00)
                 .add(Attributes.ATTACK_DAMAGE, 3.00)
                 .add(Attributes.ATTACK_SPEED, 0.00)
-                .add(Attributes.MOVEMENT_SPEED, 0.35)
+                .add(Attributes.MOVEMENT_SPEED, 0.30)
                 .add(Attributes.FOLLOW_RANGE, 28.00)
                 .build();
     }

@@ -36,15 +36,17 @@ public class HonziadeEntity extends Monster implements IAnimatable {
 
     public HonziadeEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
+        this.xpReward = 25;
     }
 
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
-                .add(Attributes.MAX_HEALTH, 50.00)
-                .add(Attributes.ATTACK_DAMAGE, 3.00)
-                .add(Attributes.ATTACK_SPEED, 0.00)
-                .add(Attributes.MOVEMENT_SPEED, 0.35)
-                .add(Attributes.FOLLOW_RANGE, 28.00)
+                .add(Attributes.MAX_HEALTH, 75.00)
+                .add(Attributes.ATTACK_DAMAGE, 5.00)
+                .add(Attributes.ATTACK_SPEED, 0.20)
+                .add(Attributes.MOVEMENT_SPEED, 0.40)
+                .add(Attributes.FOLLOW_RANGE, 64.00)
+                .add(Attributes.ATTACK_KNOCKBACK, 0.10)
                 .build();
     }
 

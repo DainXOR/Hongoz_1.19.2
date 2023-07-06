@@ -36,15 +36,16 @@ public class CroaktarEntity extends Monster implements IAnimatable {
 
     public CroaktarEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
+        this.xpReward = 10;
     }
 
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
-                .add(Attributes.MAX_HEALTH, 50.00)
-                .add(Attributes.ATTACK_DAMAGE, 3.00)
-                .add(Attributes.ATTACK_SPEED, 0.00)
-                .add(Attributes.MOVEMENT_SPEED, 0.35)
-                .add(Attributes.FOLLOW_RANGE, 28.00)
+                .add(Attributes.MAX_HEALTH, 35.00)
+                .add(Attributes.ATTACK_DAMAGE, 1.00)
+                .add(Attributes.ATTACK_SPEED, 0.10)
+                .add(Attributes.MOVEMENT_SPEED, 0.45)
+                .add(Attributes.FOLLOW_RANGE, 24.00)
                 .build();
     }
 

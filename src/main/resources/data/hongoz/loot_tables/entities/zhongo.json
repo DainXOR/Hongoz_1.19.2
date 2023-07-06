@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:entity",
+  "pools": [
+    {
+      "rolls": {
+        "type": "minecraft:binomial",
+        "n": 3,
+        "p": 0.4
+      },
+      "bonus_rolls": 0.0,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:brown_mushroom"
+        }
+      ]
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -19,7 +20,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.network.NetworkEvent;
 import software.bernie.geckolib3.core.AnimationState;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
@@ -31,22 +34,29 @@ import software.bernie.geckolib3.core.manager.AnimationData;
 import software.bernie.geckolib3.core.manager.AnimationFactory;
 import software.bernie.geckolib3.util.GeckoLibUtil;
 
+import java.util.List;
+
 public class HordenEntity extends Monster implements IAnimatable {
     private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
 
     public HordenEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-        playSound(SoundEvents.LIGHTNING_BOLT_THUNDER);
+
+        this.xpReward = 35;
+
+        for (int i = 0; i < pLevel.players().size(); i++){
+            pLevel.players().get(i).playSound(SoundEvents.LIGHTNING_BOLT_THUNDER);
+        }
     }
 
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 100.00)
-                .add(Attributes.ATTACK_DAMAGE, 5.00)
-                .add(Attributes.ATTACK_SPEED, 1.00)
+                .add(Attributes.ATTACK_DAMAGE, 10.00)
+                .add(Attributes.ATTACK_SPEED, 0.60)
                 .add(Attributes.MOVEMENT_SPEED, 0.20)
                 .add(Attributes.FOLLOW_RANGE, 32.00)
-                .add(Attributes.ATTACK_KNOCKBACK, 1.00)
+                .add(Attributes.ATTACK_KNOCKBACK, 0.50)
                 .add(Attributes.KNOCKBACK_RESISTANCE, 1.00)
                 .add(Attributes.ARMOR, 0.80)
                 .add(Attributes.ARMOR_TOUGHNESS, 0.20)
@@ -56,11 +66,10 @@ public class HordenEntity extends Monster implements IAnimatable {
     @Override
     public boolean hurt(DamageSource damageSource, float pAmount) {
         if (damageSource.getDirectEntity() instanceof AbstractArrow) {
-            return false;
+            return super.hurt(damageSource, 1);
         }
         return super.hurt(damageSource, pAmount);
     }
-
 
     @Override
     protected void registerGoals() {
@@ -109,6 +118,8 @@ public class HordenEntity extends Monster implements IAnimatable {
     public AnimationFactory getFactory() {
         return factory;
     }
+
+
 
     @Override
     protected void playStepSound(BlockPos blockPos, BlockState blockState) {

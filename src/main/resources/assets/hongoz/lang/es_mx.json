@@ -9,10 +9,10 @@
   "entity.hongoz.croaktar": "Croaktar",
   "entity.hongoz.honziade": "Honziade",
 
-  "sounds.hongoz.zhongo_idle": "Zhongo growl",
-  "sounds.hongoz.zhongo_step": "Zhongo steps",
-  "sounds.hongoz.zhongo_hurt": "Zhongo hurts",
-  "sounds.hongoz.zhongo_death": "Zhongo dies",
+  "sounds.hongoz.zhongo_idle": "Zhongo gruñe",
+  "sounds.hongoz.zhongo_step": "Pasos de Zhongo",
+  "sounds.hongoz.zhongo_hurt": "Zhongo herido",
+  "sounds.hongoz.zhongo_death": "Zhongo muere",
 
   "sounds.hongoz.horden_idle": "Horden growl",
   "sounds.hongoz.horden_step": "Horden steps",
