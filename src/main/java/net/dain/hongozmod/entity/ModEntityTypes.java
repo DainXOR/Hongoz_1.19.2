@@ -24,7 +24,8 @@ public class ModEntityTypes {
 
     public static final RegistryObject<EntityType<HordenEntity>> HORDEN =
             ENTITY_TYPES.register("horden", () -> EntityType.Builder.of(HordenEntity::new, MobCategory.MONSTER)
-                    .sized(2.0f, 2.4f)
+                    .sized(1.4f, 2.4f)
+                    .canSpawnFarFromPlayer()
                     .fireImmune()
                     .immuneTo(Blocks.LAVA)
                     .build(new ResourceLocation(HongozMod.MOD_ID, "horden").toString()));
@@ -36,7 +37,7 @@ public class ModEntityTypes {
 
     public static final RegistryObject<EntityType<HonziadeEntity>> HONZIADE =
             ENTITY_TYPES.register("honziade", () -> EntityType.Builder.of(HonziadeEntity::new, MobCategory.MONSTER)
-                    .sized(3.0f, 2.0f)
+                    .sized(2.6f, 2.0f)
                     .build(new ResourceLocation(HongozMod.MOD_ID, "honziade").toString()));
 
     public static void register(IEventBus eventBus) {

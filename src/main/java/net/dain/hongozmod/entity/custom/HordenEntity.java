@@ -80,6 +80,11 @@ public class HordenEntity extends Monster implements IAnimatable {
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Player.class, true));
     }
 
+    @Override
+    public boolean isPersistenceRequired() {
+        return true;
+    }
+
     private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
 
         if(event.isMoving()){
