@@ -36,7 +36,7 @@ public class ModEntityTypes {
 
     public static final RegistryObject<EntityType<HonziadeEntity>> HONZIADE =
             ENTITY_TYPES.register("honziade", () -> EntityType.Builder.of(HonziadeEntity::new, MobCategory.MONSTER)
-                    .sized(3.6f, 2.2f)
+                    .sized(3.0f, 2.0f)
                     .build(new ResourceLocation(HongozMod.MOD_ID, "honziade").toString()));
 
     public static void register(IEventBus eventBus) {
