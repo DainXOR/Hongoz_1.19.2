@@ -20,6 +20,14 @@ public class ModSounds {
     public static final RegistryObject<SoundEvent> HORDEN_HURT = registerSoundEvent("horden_hurt");
     public static final RegistryObject<SoundEvent> HORDEN_DEATH = registerSoundEvent("horden_death");
 
+    public static final RegistryObject<SoundEvent> HONZIADE_AMBIENT = registerSoundEvent("honziade_idle");
+
+    public static final RegistryObject<SoundEvent> HUNTER_AMBIENT = registerSoundEvent("hunter_idle");
+    public static final RegistryObject<SoundEvent> HUNTER_AGGRESIVE = registerSoundEvent("hunter_aggresive");
+    public static final RegistryObject<SoundEvent> HUNTER_STEP = HORDEN_STEP;//registerSoundEvent("horden_step");
+    public static final RegistryObject<SoundEvent> HUNTER_HURT = HORDEN_HURT;//registerSoundEvent("horden_hurt");
+    public static final RegistryObject<SoundEvent> HUNTER_DEATH = HORDEN_DEATH;//registerSoundEvent("horden_death");
+
     //public static final ForgeSoundType TEST_SOUNDS = new ForgeSoundType(1.0f, 1.0f, ModSounds.TEST_SOUND_1, ModSounds.TEST_SOUND_2, ModSounds.TEST_SOUND_3,);
 
     public static RegistryObject<SoundEvent> registerSoundEvent(String name){

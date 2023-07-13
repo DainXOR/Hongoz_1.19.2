@@ -29,6 +29,10 @@ public class ModItems {
             () -> new ForgeSpawnEggItem(ModEntityTypes.HONZIADE, 0x0d0c800, 0xd6c3aa,
                     new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    public static final RegistryObject<Item> HUNTER_SPAWN_EGG = ITEMS.register("hunter_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntityTypes.HONZIADE, 0x0d0c800, 0xd6c3aa,
+                    new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);
     }

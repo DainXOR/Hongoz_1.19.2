@@ -4,9 +4,9 @@
     "type": "forge:any"
   },
   "spawners": {
-    "type": "hongoz:croaktar",
-    "weight": 50,
-    "minCount": 2,
-    "maxCount": 3
+    "type": "hongoz:hunter",
+    "weight": 1,
+    "minCount": 1,
+    "maxCount": 1
   }
 }

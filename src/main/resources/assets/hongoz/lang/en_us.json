@@ -10,22 +10,27 @@
   "entity.hongoz.honziade": "Honziade",
 
   "sounds.hongoz.zhongo_idle": "Zhongo growl",
-  "sounds.hongoz.zhongo_step": "Zhongo steps",
+  "sounds.hongoz.zhongo_step": "footsteps",
   "sounds.hongoz.zhongo_hurt": "Zhongo hurts",
   "sounds.hongoz.zhongo_death": "Zhongo dies",
 
   "sounds.hongoz.horden_idle": "Horden growl",
-  "sounds.hongoz.horden_step": "Horden steps",
+  "sounds.hongoz.horden_step": "footsteps",
   "sounds.hongoz.horden_hurt": "Horden hurts",
   "sounds.hongoz.horden_death": "Horden dies",
 
   "sounds.hongoz.croaktar_idle": "Croaktar growl",
-  "sounds.hongoz.croaktar_step": "Croaktar steps",
+  "sounds.hongoz.croaktar_step": "footsteps",
   "sounds.hongoz.croaktar_hurt": "Croaktar hurts",
   "sounds.hongoz.croaktar_death": "Croaktar dies",
 
-  "sounds.hongoz.honziade_idle": "Honziade growl",
-  "sounds.hongoz.honziade_step": "Honziade steps",
+  "sounds.hongoz.honziade_idle": "Honziade approaches",
+  "sounds.hongoz.honziade_step": "footsteps",
   "sounds.hongoz.honziade_hurt": "Honziade hurts",
-  "sounds.hongoz.honziade_death": "Honziade dies"
+  "sounds.hongoz.honziade_death": "Honziade dies",
+
+  "sounds.hongoz.hunter_idle": "Hunter growl",
+  "sounds.hongoz.hunter_step": "footsteps",
+  "sounds.hongoz.hunter_hurt": "Hunter hurts",
+  "sounds.hongoz.hunter_death": "Hunter dies"
 }

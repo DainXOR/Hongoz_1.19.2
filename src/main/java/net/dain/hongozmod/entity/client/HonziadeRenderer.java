@@ -15,7 +15,7 @@ public class HonziadeRenderer extends GeoEntityRenderer<HonziadeEntity> {
 
     public HonziadeRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new HonziadeModel());
-        this.shadowRadius = 1.0f;
+        this.shadowRadius = 1.5f;
     }
 
     @Override
@@ -25,7 +25,7 @@ public class HonziadeRenderer extends GeoEntityRenderer<HonziadeEntity> {
 
     @Override
     public RenderType getRenderType(HonziadeEntity animatable, float partialTick, PoseStack poseStack, @Nullable MultiBufferSource bufferSource, @Nullable VertexConsumer buffer, int packedLight, ResourceLocation texture) {
-        poseStack.scale(1.5f, 1.5f, 1.5f);
+        poseStack.scale(0.8f, 0.5f, 0.8f);
         return super.getRenderType(animatable, partialTick, poseStack, bufferSource, buffer, packedLight, texture);
     }
 }

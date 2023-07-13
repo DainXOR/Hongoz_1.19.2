@@ -47,5 +47,26 @@
     "sounds": [
       "hongoz:horden_step"
     ]
+  },
+  "honziade_idle": {
+    "subtitle": "sounds.hongoz.honziade_idle",
+    "category": "neutral",
+    "sounds": [
+      "hongoz:honziade_idle"
+    ]
+  },
+  "hunter_idle": {
+    "subtitle": "sounds.hongoz.hunter_idle",
+    "category": "neutral",
+    "sounds": [
+      "hongoz:hunter_idle"
+    ]
+  },
+  "hunter_aggresive": {
+    "subtitle": "sounds.hongoz.hunter_aggresive",
+    "category": "neutral",
+    "sounds": [
+      "hongoz:hunter_aggresive"
+    ]
   }
 }

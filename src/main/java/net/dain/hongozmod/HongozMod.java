@@ -2,10 +2,7 @@ package net.dain.hongozmod;
 
 import com.mojang.logging.LogUtils;
 import net.dain.hongozmod.entity.ModEntityTypes;
-import net.dain.hongozmod.entity.client.CroaktarRenderer;
-import net.dain.hongozmod.entity.client.HonziadeRenderer;
-import net.dain.hongozmod.entity.client.HordenRenderer;
-import net.dain.hongozmod.entity.client.ZhongoRenderer;
+import net.dain.hongozmod.entity.client.*;
 import net.dain.hongozmod.item.ModItems;
 import net.dain.hongozmod.sound.ModSounds;
 import net.minecraft.client.renderer.entity.EntityRenderers;
@@ -28,7 +25,7 @@ import software.bernie.geckolib3.GeckoLib;
 @Mod(HongozMod.MOD_ID)
 public class HongozMod {
     public static final String MOD_ID = "hongoz";
-    private static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogUtils.getLogger();
 
     public HongozMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
@@ -54,6 +51,8 @@ public class HongozMod {
                     Monster::checkMonsterSpawnRules);
             SpawnPlacements.register(ModEntityTypes.HONZIADE.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                     Monster::checkMonsterSpawnRules);
+            SpawnPlacements.register(ModEntityTypes.HUNTER.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                    Monster::checkMonsterSpawnRules);
         });
     }
 
@@ -68,6 +67,7 @@ public class HongozMod {
             EntityRenderers.register(ModEntityTypes.HORDEN.get(), HordenRenderer::new);
             EntityRenderers.register(ModEntityTypes.CROAKTAR.get(), CroaktarRenderer::new);
             EntityRenderers.register(ModEntityTypes.HONZIADE.get(), HonziadeRenderer::new);
+            EntityRenderers.register(ModEntityTypes.HUNTER.get(), HunterRenderer::new);
         }
     }
 }

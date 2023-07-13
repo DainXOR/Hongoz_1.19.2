@@ -8,15 +8,14 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.Cow;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -33,35 +32,40 @@ import software.bernie.geckolib3.core.manager.AnimationFactory;
 import software.bernie.geckolib3.util.GeckoLibUtil;
 
 public class ZhongoEntity extends Monster implements IAnimatable {
+    public static final AnimationBuilder IDLE_ANIMATION = new AnimationBuilder().addAnimation("animation.zhongo.idle", ILoopType.EDefaultLoopTypes.LOOP);
+    public static final AnimationBuilder WALK_ANIMATION = new AnimationBuilder().addAnimation("animation.zhongo.walk", ILoopType.EDefaultLoopTypes.LOOP);
+    public static final AnimationBuilder ATTACK_ANIMATION = new AnimationBuilder().addAnimation("animation.zhongo.attack", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
+
     private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
 
     public ZhongoEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
         this.xpReward = 15;
+        this.setCanPickUpLoot(true);
     }
 
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 50.00)
-                .add(Attributes.ATTACK_DAMAGE, 3.00)
-                .add(Attributes.ATTACK_SPEED, 0.00)
-                .add(Attributes.MOVEMENT_SPEED, 0.30)
-                .add(Attributes.FOLLOW_RANGE, 28.00)
+                .add(Attributes.ATTACK_DAMAGE, 5.00)
+                .add(Attributes.MOVEMENT_SPEED, 0.25)
+                .add(Attributes.FOLLOW_RANGE, 32.00)
                 .build();
     }
 
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(1, new FloatGoal(this));
-        this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 1.2d, false));
+        this.goalSelector.addGoal(2, new LookAtPlayerGoal(this, Player.class, 32));
+        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.44d, false));
         this.goalSelector.addGoal(4, new WaterAvoidingRandomStrollGoal(this, 1.0d));
         this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
 
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, true));
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, IronGolem.class, true));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Cow.class, true));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Horse.class, true));
+        this.targetSelector.addGoal(0, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, true));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Warden.class, true));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, IronGolem.class, true));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Animal.class, true));
     }
 
     private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
@@ -93,8 +97,27 @@ public class ZhongoEntity extends Monster implements IAnimatable {
 
     @Override
     public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController(this, "controller", 0, this::predicate));
-        data.addAnimationController(new AnimationController(this, "attackController", 0, this::attackPredicate));
+        data.addAnimationController(new AnimationController(this, "controller", 0, event -> {
+            if(!this.swinging){
+                if(event.isMoving()){
+                    event.getController().setAnimation(WALK_ANIMATION);
+                }
+                else{
+                    event.getController().setAnimation(IDLE_ANIMATION);
+                }
+                return PlayState.CONTINUE;
+            }
+
+            return PlayState.STOP;
+        }));
+        data.addAnimationController(new AnimationController(this, "attackController", 0, event -> {
+            if(this.swinging){
+                event.getController().setAnimation(ATTACK_ANIMATION);
+                return PlayState.CONTINUE;
+            }
+            event.getController().markNeedsReload();
+            return PlayState.STOP;
+        }));
     }
 
     @Override
