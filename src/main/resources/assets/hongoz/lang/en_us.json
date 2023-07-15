@@ -3,11 +3,13 @@
   "item.hongoz.horden_spawn_egg": "Horden Spawn Egg",
   "item.hongoz.croaktar_spawn_egg": "Croaktar Spawn Egg",
   "item.hongoz.honziade_spawn_egg": "Honziade Spawn Egg",
+  "item.hongoz.evolved_croaktar_spawn_egg": "Evolved Croaktar Spawn Egg",
 
   "entity.hongoz.zhongo": "Zhongo",
   "entity.hongoz.horden": "Horden",
   "entity.hongoz.croaktar": "Croaktar",
   "entity.hongoz.honziade": "Honziade",
+  "entity.hongoz.evolved_croaktar": "Evolved Croaktar",
 
   "sounds.hongoz.zhongo_idle": "Zhongo growl",
   "sounds.hongoz.zhongo_step": "footsteps",

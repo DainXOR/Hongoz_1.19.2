@@ -23,6 +23,8 @@ public class ModEvents {
             event.put(ModEntityTypes.CROAKTAR.get(), CroaktarEntity.setAttributes());
             event.put(ModEntityTypes.HONZIADE.get(), HonziadeEntity.setAttributes());
             event.put(ModEntityTypes.HUNTER.get(), HunterEntity.setAttributes());
+
+            event.put(ModEntityTypes.EVO_CROAKTAR.get(), EvoCroaktar.setAttributes());
         }
     }
 }

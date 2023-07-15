@@ -13,6 +13,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.ai.navigation.WallClimberNavigation;
@@ -67,9 +68,20 @@ public class HonziadeEntity extends Spider implements IAnimatable{
                 .add(Attributes.MAX_HEALTH, 15.00)
                 .add(Attributes.ATTACK_DAMAGE, 1.50)
                 .add(Attributes.ATTACK_SPEED, 0.02)
-                .add(Attributes.MOVEMENT_SPEED, 0.50)
+                .add(Attributes.MOVEMENT_SPEED, 0.60)
                 .add(Attributes.FOLLOW_RANGE, 64.00)
                 .add(ForgeMod.STEP_HEIGHT_ADDITION.get(), 0.50)
+                .build();
+    }
+
+    public static AttributeSupplier setQueenAttributes(){
+        return Monster.createMonsterAttributes()
+                .add(Attributes.MAX_HEALTH, 150.00)
+                .add(Attributes.ATTACK_DAMAGE, 2.00)
+                .add(Attributes.ATTACK_SPEED, 0.10)
+                .add(Attributes.MOVEMENT_SPEED, 0.35)
+                .add(Attributes.FOLLOW_RANGE, 128.00)
+                .add(ForgeMod.STEP_HEIGHT_ADDITION.get(), 1.50)
                 .build();
     }
 
@@ -111,13 +123,14 @@ public class HonziadeEntity extends Spider implements IAnimatable{
         this.goalSelector.addGoal(4, new LeapAtTargetGoal(this, 0.2f));
         this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
 
-        this.targetSelector.addGoal(0, new NearestAttackableTargetGoal<>(this, Player.class, false));
-        //this.targetSelector.addGoal(1, new AvoidEntityGoal<>(this, Warden.class, 32.0f, 1.3f, 1.0f));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Warden.class, false));
-        //this.targetSelector.addGoal(2, new AvoidEntityGoal<>(this, IronGolem.class, 32.0f, 1.3f, 1.0f));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, IronGolem.class, false));
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, false));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Animal.class, false));
+        this.targetSelector.addGoal(0, new HurtByTargetGoal(this));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, false));
+        //this.targetSelector.addGoal(2, new AvoidEntityGoal<>(this, Warden.class, 32.0f, 1.3f, 1.0f));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Warden.class, false));
+        //this.targetSelector.addGoal(3, new AvoidEntityGoal<>(this, IronGolem.class, 32.0f, 1.3f, 1.0f));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, IronGolem.class, false));
+        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, false));
+        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Animal.class, false));
     }
 
     @Override

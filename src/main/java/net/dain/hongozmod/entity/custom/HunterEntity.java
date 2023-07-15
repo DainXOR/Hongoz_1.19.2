@@ -5,10 +5,14 @@ import net.dain.hongozmod.HongozMod;
 import net.dain.hongozmod.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializers;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.tags.GameEventTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.TimeUtil;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -17,9 +21,12 @@ import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.ResetUniversalAngerTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.npc.AbstractVillager;
@@ -47,14 +54,19 @@ import software.bernie.geckolib3.core.manager.AnimationData;
 import software.bernie.geckolib3.core.manager.AnimationFactory;
 import software.bernie.geckolib3.util.GeckoLibUtil;
 
+import java.util.UUID;
+
 import static net.minecraft.world.entity.Pose.ROARING;
 
-public class HunterEntity extends Monster implements IAnimatable, VibrationListener.VibrationListenerConfig {
+public class HunterEntity extends Monster implements IAnimatable, NeutralMob, VibrationListener.VibrationListenerConfig {
     public static final AnimationBuilder IDLE_ANIMATION = new AnimationBuilder().addAnimation("animation.hunter.idle", ILoopType.EDefaultLoopTypes.LOOP);
     public static final AnimationBuilder WALK_ANIMATION = new AnimationBuilder().addAnimation("animation.hunter.walk", ILoopType.EDefaultLoopTypes.LOOP);
     public static final AnimationBuilder ATTACK_ANIMATION = new AnimationBuilder().addAnimation("animation.hunter.roar", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
     public static final AnimationBuilder ROAR_ANIMATION = new AnimationBuilder().addAnimation("animation.hunter.attack", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
 
+    private static final EntityDataAccessor<Integer> DATA_REMAINING_ANGER_TIME = SynchedEntityData.defineId(HunterEntity.class, EntityDataSerializers.INT);
+    private static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(20, 39);
+    private UUID persistentAngerTarget;
 
     private static final int GAME_EVENT_LISTENER_RANGE = 16;
     private static final int VIBRATION_COOLDOWN_TICKS = 40;
@@ -63,7 +75,7 @@ public class HunterEntity extends Monster implements IAnimatable, VibrationListe
     private static final float KNOCKBACK_RESISTANCE = 1.0F;
     private static final float ATTACK_KNOCKBACK = 1.5F;
     private static final int ATTACK_DAMAGE = 30;
-    public static final int HORDEN_SPAWN_REQUIREMENT = 10;
+    public static final int HORDEN_SPAWN_REQUIREMENT = 20;
     public static int SPAWN_COUNT = 0;
 
     public net.minecraft.world.entity.AnimationState roarAnimationState = new net.minecraft.world.entity.AnimationState();
@@ -106,9 +118,10 @@ public class HunterEntity extends Monster implements IAnimatable, VibrationListe
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 750.00)
-                .add(Attributes.ATTACK_DAMAGE, 30.00)
+                .add(Attributes.ATTACK_DAMAGE, 15.00)
                 .add(Attributes.ATTACK_KNOCKBACK, 2.00)
                 .add(Attributes.MOVEMENT_SPEED, 0.35)
+                .add(Attributes.FOLLOW_RANGE, 8)
                 .build();
     }
 
@@ -145,14 +158,18 @@ public class HunterEntity extends Monster implements IAnimatable, VibrationListe
         this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0d));
         this.goalSelector.addGoal(3, new RandomLookAroundGoal(this));
 
-        this.targetSelector.addGoal(0, new NearestAttackableTargetGoal<>(this, Player.class, true));
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Warden.class, true));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, IronGolem.class, true));
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, true));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, Monster.class, true));
-        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Animal.class, true));
+        this.targetSelector.addGoal(0, (new HurtByTargetGoal(this)).setAlertOthers());
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Warden.class, true));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, IronGolem.class, true));
+        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, true));
+        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Monster.class, true));
+        this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, Animal.class, true));
+        this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, LivingEntity.class, true));
+        this.targetSelector.addGoal(8, new ResetUniversalAngerTargetGoal<>(this, true));
 
     }
+
 
     private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
 
@@ -217,6 +234,31 @@ public class HunterEntity extends Monster implements IAnimatable, VibrationListe
     @Override
     public AnimationFactory getFactory() {
         return factory;
+    }
+
+    @Override
+    public int getRemainingPersistentAngerTime() {
+        return this.entityData.get(DATA_REMAINING_ANGER_TIME);
+    }
+    @Override
+    public void setRemainingPersistentAngerTime(int pTime) {
+        this.entityData.set(DATA_REMAINING_ANGER_TIME, pTime);
+    }
+
+    @Nullable
+    @Override
+    public UUID getPersistentAngerTarget() {
+        return this.persistentAngerTarget;
+    }
+
+    @Override
+    public void setPersistentAngerTarget(@Nullable UUID pTarget) {
+        this.persistentAngerTarget = pTarget;
+    }
+
+    @Override
+    public void startPersistentAngerTimer() {
+        this.setRemainingPersistentAngerTime(PERSISTENT_ANGER_TIME.sample(this.random));
     }
 
     @Override

@@ -30,7 +30,11 @@ public class ModItems {
                     new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
     public static final RegistryObject<Item> HUNTER_SPAWN_EGG = ITEMS.register("hunter_spawn_egg",
-            () -> new ForgeSpawnEggItem(ModEntityTypes.HONZIADE, 0x0d0c800, 0xd6c3aa,
+            () -> new ForgeSpawnEggItem(ModEntityTypes.HUNTER, 0x0d0c800, 0xd6c3aa,
+                    new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> EVO_CROAKTAR_SPAWN_EGG = ITEMS.register("evolved_croaktar_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntityTypes.EVO_CROAKTAR, 0xfd2ac8, 0xb8db1f,
                     new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
     public static void register(IEventBus eventBus) {

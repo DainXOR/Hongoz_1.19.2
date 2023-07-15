@@ -68,6 +68,8 @@ public class HongozMod {
             EntityRenderers.register(ModEntityTypes.CROAKTAR.get(), CroaktarRenderer::new);
             EntityRenderers.register(ModEntityTypes.HONZIADE.get(), HonziadeRenderer::new);
             EntityRenderers.register(ModEntityTypes.HUNTER.get(), HunterRenderer::new);
+
+            EntityRenderers.register(ModEntityTypes.EVO_CROAKTAR.get(), EvoCroaktarRenderer::new);
         }
     }
 }

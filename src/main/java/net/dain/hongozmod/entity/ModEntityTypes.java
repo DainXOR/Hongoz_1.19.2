@@ -34,13 +34,19 @@ public class ModEntityTypes {
 
     public static final RegistryObject<EntityType<HonziadeEntity>> HONZIADE =
             ENTITY_TYPES.register("honziade", () -> EntityType.Builder.of(HonziadeEntity::new, MobCategory.MONSTER)
-                    .sized(1.0f, 0.8f)
+                    .sized(1.0f, 1.0f)
                     .build(new ResourceLocation(HongozMod.MOD_ID, "honziade").toString()));
 
     public static final RegistryObject<EntityType<HunterEntity>> HUNTER =
             ENTITY_TYPES.register("hunter", () -> EntityType.Builder.of(HunterEntity::new, MobCategory.MONSTER)
                     .sized(2.0f, 3.0f)
                     .build(new ResourceLocation(HongozMod.MOD_ID, "hunter").toString()));
+
+    public static final RegistryObject<EntityType<EvoCroaktar>> EVO_CROAKTAR =
+            ENTITY_TYPES.register("evolved_croaktar", () -> EntityType.Builder.of(EvoCroaktar::new, MobCategory.MONSTER)
+                    .sized(2.0f, 2.8f)
+                    .build(new ResourceLocation(HongozMod.MOD_ID, "evolved_croaktar").toString()));
+
 
     public static void register(IEventBus eventBus) {
         ENTITY_TYPES.register(eventBus);

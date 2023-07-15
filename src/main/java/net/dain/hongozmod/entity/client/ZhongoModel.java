@@ -1,7 +1,6 @@
 package net.dain.hongozmod.entity.client;
 
 import net.dain.hongozmod.HongozMod;
-import net.dain.hongozmod.entity.custom.CroaktarEntity;
 import net.dain.hongozmod.entity.custom.ZhongoEntity;
 import net.minecraft.resources.ResourceLocation;
 import software.bernie.geckolib3.model.AnimatedGeoModel;
