@@ -84,8 +84,8 @@ public class HordenEntity extends Monster implements IAnimatable {
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 150.00)
-                .add(Attributes.ATTACK_DAMAGE, 15.00)
-                .add(Attributes.ATTACK_SPEED, 2.00)
+                .add(Attributes.ATTACK_DAMAGE, 8.00)
+                .add(Attributes.ATTACK_SPEED, 0.40)
                 .add(Attributes.MOVEMENT_SPEED, 0.25)
                 .add(Attributes.FOLLOW_RANGE, 32.00)
                 .add(Attributes.ATTACK_KNOCKBACK, 0.50)
@@ -108,6 +108,8 @@ public class HordenEntity extends Monster implements IAnimatable {
         this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.2d, false));
         this.goalSelector.addGoal(4, new WaterAvoidingRandomStrollGoal(this, 1.0d));
         this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
+        this.goalSelector.addGoal(5, new LookAtPlayerGoal(this, Player.class, 32));
+
 
         this.targetSelector.addGoal(0, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
@@ -118,29 +120,25 @@ public class HordenEntity extends Monster implements IAnimatable {
     }
 
     private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
-
-        if(event.isMoving()){
-            event.getController().setAnimation(
-                    new AnimationBuilder()
-                            .addAnimation("animation.horden.walk", ILoopType.EDefaultLoopTypes.LOOP));
+        if(!this.swinging){
+            if(event.isMoving()){
+                event.getController().setAnimation(WALK_ANIMATION);
+            }
+            else{
+                event.getController().setAnimation(IDLE_ANIMATION);
+            }
             return PlayState.CONTINUE;
         }
 
-        event.getController().setAnimation(
-                new AnimationBuilder()
-                        .addAnimation("animation.horden.idle", ILoopType.EDefaultLoopTypes.LOOP));
-
-
-        return PlayState.CONTINUE;
-
+        return PlayState.STOP;
     }
     private <E extends IAnimatable> PlayState attackPredicate(AnimationEvent<E> event) {
-        if(this.swinging && event.getController().getAnimationState().equals(AnimationState.Stopped)){
-            event.getController().markNeedsReload();
-            event.getController().setAnimation(new AnimationBuilder()
-                    .addAnimation("animation.horden.attack", ILoopType.EDefaultLoopTypes.PLAY_ONCE));
+        if(this.swinging){
+            event.getController().setAnimation(ATTACK_ANIMATION);
+            return PlayState.CONTINUE;
         }
-        return PlayState.CONTINUE;
+        event.getController().markNeedsReload();
+        return PlayState.STOP;
     }
 
     @Override

@@ -44,7 +44,8 @@ public class CroaktarEntity extends Monster implements IAnimatable{
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 45.00)
-                .add(Attributes.ATTACK_DAMAGE, 8.00)
+                .add(Attributes.ATTACK_DAMAGE, 4.00)
+                .add(Attributes.ATTACK_SPEED, 5.00)
                 .add(Attributes.MOVEMENT_SPEED, 0.40)
                 .add(Attributes.FOLLOW_RANGE, 32.00)
                 .add(Attributes.ATTACK_KNOCKBACK, 0.20)

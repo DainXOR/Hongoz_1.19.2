@@ -66,8 +66,8 @@ public class HonziadeEntity extends Spider implements IAnimatable{
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 15.00)
-                .add(Attributes.ATTACK_DAMAGE, 1.50)
-                .add(Attributes.ATTACK_SPEED, 0.02)
+                .add(Attributes.ATTACK_DAMAGE, 0.75)
+                .add(Attributes.ATTACK_SPEED, 2.00)
                 .add(Attributes.MOVEMENT_SPEED, 0.60)
                 .add(Attributes.FOLLOW_RANGE, 64.00)
                 .add(ForgeMod.STEP_HEIGHT_ADDITION.get(), 0.50)

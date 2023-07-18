@@ -51,7 +51,8 @@ public class EvoCroaktar extends Monster implements IAnimatable{
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 65.00)
-                .add(Attributes.ATTACK_DAMAGE, 11.00)
+                .add(Attributes.ATTACK_DAMAGE, 6.00)
+                .add(Attributes.ATTACK_SPEED, 1.50)
                 .add(Attributes.MOVEMENT_SPEED, 0.45)
                 .add(Attributes.FOLLOW_RANGE, 64.00)
                 .add(Attributes.ATTACK_KNOCKBACK, 0.30)

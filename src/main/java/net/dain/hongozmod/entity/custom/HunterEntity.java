@@ -17,10 +17,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.ai.goal.FloatGoal;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.ResetUniversalAngerTargetGoal;
@@ -28,6 +25,7 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.ZombifiedPiglin;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.npc.Villager;
@@ -41,6 +39,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.level.gameevent.vibrations.VibrationListener;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import software.bernie.geckolib3.core.AnimationState;
@@ -64,9 +63,12 @@ public class HunterEntity extends Monster implements IAnimatable, NeutralMob, Vi
     public static final AnimationBuilder ATTACK_ANIMATION = new AnimationBuilder().addAnimation("animation.hunter.roar", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
     public static final AnimationBuilder ROAR_ANIMATION = new AnimationBuilder().addAnimation("animation.hunter.attack", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
 
-    private static final EntityDataAccessor<Integer> DATA_REMAINING_ANGER_TIME = SynchedEntityData.defineId(HunterEntity.class, EntityDataSerializers.INT);
     private static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(20, 39);
+    private static final int ALERT_RANGE_Y = 32;
+    private static final UniformInt ALERT_INTERVAL = TimeUtil.rangeOfSeconds(4, 6);
     private UUID persistentAngerTarget;
+    private int remainingPersistentAngerTime;
+    private int ticksUntilNextAlert;
 
     private static final int GAME_EVENT_LISTENER_RANGE = 16;
     private static final int VIBRATION_COOLDOWN_TICKS = 40;
@@ -118,7 +120,8 @@ public class HunterEntity extends Monster implements IAnimatable, NeutralMob, Vi
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 750.00)
-                .add(Attributes.ATTACK_DAMAGE, 15.00)
+                .add(Attributes.ATTACK_DAMAGE, 10.00)
+                .add(Attributes.ATTACK_SPEED, 1.00)
                 .add(Attributes.ATTACK_KNOCKBACK, 2.00)
                 .add(Attributes.MOVEMENT_SPEED, 0.35)
                 .add(Attributes.FOLLOW_RANGE, 8)
@@ -163,13 +166,22 @@ public class HunterEntity extends Monster implements IAnimatable, NeutralMob, Vi
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Warden.class, true));
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, IronGolem.class, true));
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, true));
+
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Monster.class, true));
         this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, Animal.class, true));
-        this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, LivingEntity.class, true));
-        this.targetSelector.addGoal(8, new ResetUniversalAngerTargetGoal<>(this, true));
+        //this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, LivingEntity.class, true));
+        this.targetSelector.addGoal(7, new ResetUniversalAngerTargetGoal<>(this, true));
 
     }
 
+    @Override
+    protected void customServerAiStep() {
+        this.updatePersistentAnger((ServerLevel)this.level, true);
+        if (this.getTarget() != null) {
+            this.maybeAlertOthers();
+        }
+        super.customServerAiStep();
+    }
 
     private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
 
@@ -238,11 +250,11 @@ public class HunterEntity extends Monster implements IAnimatable, NeutralMob, Vi
 
     @Override
     public int getRemainingPersistentAngerTime() {
-        return this.entityData.get(DATA_REMAINING_ANGER_TIME);
+        return this.remainingPersistentAngerTime;
     }
     @Override
     public void setRemainingPersistentAngerTime(int pTime) {
-        this.entityData.set(DATA_REMAINING_ANGER_TIME, pTime);
+        this.remainingPersistentAngerTime = pTime;
     }
 
     @Nullable
@@ -250,7 +262,6 @@ public class HunterEntity extends Monster implements IAnimatable, NeutralMob, Vi
     public UUID getPersistentAngerTarget() {
         return this.persistentAngerTarget;
     }
-
     @Override
     public void setPersistentAngerTarget(@Nullable UUID pTarget) {
         this.persistentAngerTarget = pTarget;
@@ -261,10 +272,37 @@ public class HunterEntity extends Monster implements IAnimatable, NeutralMob, Vi
         this.setRemainingPersistentAngerTime(PERSISTENT_ANGER_TIME.sample(this.random));
     }
 
+    private void maybeAlertOthers() {
+        if (this.ticksUntilNextAlert > 0) {
+            --this.ticksUntilNextAlert;
+        } else {
+            if (this.getSensing().hasLineOfSight(this.getTarget())) {
+                this.alertOthers();
+            }
+
+            this.ticksUntilNextAlert = ALERT_INTERVAL.sample(this.random);
+        }
+    }
+    private void alertOthers() {
+        double d0 = ALERT_RANGE_Y; // this.getAttributeValue(Attributes.FOLLOW_RANGE);
+        AABB aabb = AABB.unitCubeFromLowerCorner(this.position()).inflate(d0, 10.0D, d0);
+        this.level.getEntitiesOfClass(HunterEntity.class, aabb, EntitySelector.NO_SPECTATORS).stream()
+                .filter((entity) -> { return entity != this; })
+                .filter((entity) -> { return entity.getTarget() == null; })
+                .filter((entity) -> { return !entity.isAlliedTo(this.getTarget()); })
+                .forEach((entity) -> entity.setTarget(this.getTarget()));
+    }
+
     @Override
     public void setTarget(@Nullable LivingEntity pTarget) {
+        if (this.getTarget() == null && pTarget != null) {
+            this.ticksUntilNextAlert = ALERT_INTERVAL.sample(this.random);
+        }
+        if (pTarget instanceof Player) {
+            this.setLastHurtByPlayer((Player)pTarget);
+        }
+
         super.setTarget(pTarget);
-        this.threaten = pTarget != null;
     }
 
     @Override
@@ -310,5 +348,8 @@ public class HunterEntity extends Monster implements IAnimatable, NeutralMob, Vi
         return false;
     }
 
-
+    @Override
+    public boolean canAttack(LivingEntity pTarget) {
+        return !(pTarget instanceof HunterEntity) && super.canAttack(pTarget);
+    }
 }

@@ -48,7 +48,7 @@ public class ZhongoEntity extends Monster implements IAnimatable {
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 50.00)
-                .add(Attributes.ATTACK_DAMAGE, 5.00)
+                .add(Attributes.ATTACK_DAMAGE, 3.00)
                 .add(Attributes.MOVEMENT_SPEED, 0.25)
                 .add(Attributes.FOLLOW_RANGE, 32.00)
                 .build();
