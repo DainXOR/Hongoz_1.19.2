@@ -1,10 +1,17 @@
 {
+  "item.hongoz.wolframium_ingot": "Wolframium Ingot",
+  "item.hongoz.raw_wolframite": "Raw Wolframite",
+
   "item.hongoz.zhongo_spawn_egg": "Zhongo Spawn Egg",
   "item.hongoz.horden_spawn_egg": "Horden Spawn Egg",
   "item.hongoz.croaktar_spawn_egg": "Croaktar Spawn Egg",
   "item.hongoz.honziade_spawn_egg": "Honziade Spawn Egg",
   "item.hongoz.evolved_croaktar_spawn_egg": "Evolved Croaktar Spawn Egg",
   "item.hongoz.hunter_spawn_egg": "Hunter Spawn Egg",
+
+  "block.hongoz.wolframite_ore": "Wolframite Ore",
+  "block.hongoz.deepslate_wolframite_ore": "Deepslate Wolframite Ore",
+  "block.hongoz.wolframium_block": "Wolframium Block",
 
   "entity.hongoz.zhongo": "Zhongo",
   "entity.hongoz.horden": "Horden",
@@ -36,5 +43,7 @@
   "sounds.hongoz.hunter_idle": "Hunter growl",
   "sounds.hongoz.hunter_step": "footsteps",
   "sounds.hongoz.hunter_hurt": "Hunter hurts",
-  "sounds.hongoz.hunter_death": "Hunter dies"
+  "sounds.hongoz.hunter_death": "Hunter dies",
+
+
 }

@@ -1,10 +1,13 @@
 package net.dain.hongozmod;
 
 import com.mojang.logging.LogUtils;
+import net.dain.hongozmod.block.ModBlocks;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.entity.client.*;
 import net.dain.hongozmod.item.ModItems;
 import net.dain.hongozmod.sound.ModSounds;
+import net.dain.hongozmod.world.feature.ModConfiguredFeatures;
+import net.dain.hongozmod.world.feature.ModPlacedFeature;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.monster.Monster;
@@ -30,9 +33,11 @@ public class HongozMod {
     public HongozMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        ModItems.register(modEventBus);
+        ModBlocks.register(modEventBus);
         ModSounds.register(modEventBus);
         ModEntityTypes.register(modEventBus);
-        ModItems.register(modEventBus);
+
 
         GeckoLib.initialize();
 
@@ -52,6 +57,9 @@ public class HongozMod {
             SpawnPlacements.register(ModEntityTypes.HONZIADE.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                     Monster::checkMonsterSpawnRules);
             SpawnPlacements.register(ModEntityTypes.HUNTER.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                    Monster::checkMonsterSpawnRules);
+
+            SpawnPlacements.register(ModEntityTypes.EVO_CROAKTAR.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                     Monster::checkMonsterSpawnRules);
         });
     }

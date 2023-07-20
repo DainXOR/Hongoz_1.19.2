@@ -3,10 +3,12 @@ package net.dain.hongozmod.entity.custom;
 import net.dain.hongozmod.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -15,6 +17,7 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.IronGolem;
+import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.npc.AbstractVillager;
@@ -84,7 +87,7 @@ public class HordenEntity extends Monster implements IAnimatable {
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 150.00)
-                .add(Attributes.ATTACK_DAMAGE, 8.00)
+                .add(Attributes.ATTACK_DAMAGE, 11.00)
                 .add(Attributes.ATTACK_SPEED, 0.40)
                 .add(Attributes.MOVEMENT_SPEED, 0.25)
                 .add(Attributes.FOLLOW_RANGE, 32.00)
@@ -96,7 +99,16 @@ public class HordenEntity extends Monster implements IAnimatable {
     }
 
     @Override
+    public void thunderHit(ServerLevel pLevel, LightningBolt pLightning) {
+        this.heal(pLightning.getDamage());
+    }
+
+    @Override
     public boolean hurt(DamageSource damageSource, float pAmount) {
+        if (this.level.isClientSide()){
+            return false;
+        }
+
         if (damageSource.getDirectEntity() instanceof AbstractArrow) {
             return super.hurt(damageSource, 1);
         }

@@ -124,7 +124,7 @@ public class HunterEntity extends Monster implements IAnimatable, NeutralMob, Vi
                 .add(Attributes.ATTACK_SPEED, 1.00)
                 .add(Attributes.ATTACK_KNOCKBACK, 2.00)
                 .add(Attributes.MOVEMENT_SPEED, 0.35)
-                .add(Attributes.FOLLOW_RANGE, 8)
+                .add(Attributes.FOLLOW_RANGE, 12)
                 .build();
     }
 

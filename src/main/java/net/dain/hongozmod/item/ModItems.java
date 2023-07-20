@@ -4,6 +4,7 @@ import net.dain.hongozmod.HongozMod;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -36,6 +37,18 @@ public class ModItems {
     public static final RegistryObject<Item> EVO_CROAKTAR_SPAWN_EGG = ITEMS.register("evolved_croaktar_spawn_egg",
             () -> new ForgeSpawnEggItem(ModEntityTypes.EVO_CROAKTAR, 0xfd2ac8, 0xb8db1f,
                     new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
+    public static final RegistryObject<Item> WOLFRAMIUM_INGOT = ITEMS.register(
+            "wolframium_ingot",
+            () -> new Item(new Item.Properties()
+                    .tab(CreativeModeTab.TAB_MISC)
+                    .rarity(Rarity.RARE)));
+
+    public static final RegistryObject<Item> RAW_WOLFRAMITE = ITEMS.register(
+            "raw_wolframite",
+            () -> new Item(new Item.Properties()
+                    .tab(CreativeModeTab.TAB_MISC)
+                    .rarity(Rarity.RARE)));
 
     public static void register(IEventBus eventBus) {
         ITEMS.register(eventBus);

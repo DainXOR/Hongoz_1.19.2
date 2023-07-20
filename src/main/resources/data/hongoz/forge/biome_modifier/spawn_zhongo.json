@@ -5,7 +5,7 @@
   },
   "spawners": {
     "type": "hongoz:zhongo",
-    "weight": 200,
+    "weight": 400,
     "minCount": 6,
     "maxCount": 10
   }
