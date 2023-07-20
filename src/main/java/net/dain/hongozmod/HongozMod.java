@@ -7,14 +7,13 @@ import net.dain.hongozmod.entity.client.*;
 import net.dain.hongozmod.item.ModItems;
 import net.dain.hongozmod.sound.ModSounds;
 import net.dain.hongozmod.world.feature.ModConfiguredFeatures;
-import net.dain.hongozmod.world.feature.ModPlacedFeature;
+import net.dain.hongozmod.world.feature.ModPlacedFeatures;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.SpawnPlacementRegisterEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -38,6 +37,8 @@ public class HongozMod {
         ModSounds.register(modEventBus);
         ModEntityTypes.register(modEventBus);
 
+        ModConfiguredFeatures.register(modEventBus);
+        ModPlacedFeatures.register(modEventBus);
 
         GeckoLib.initialize();
 
