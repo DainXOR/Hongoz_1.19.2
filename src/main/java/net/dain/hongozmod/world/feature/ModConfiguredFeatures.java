@@ -25,6 +25,8 @@ public class ModConfiguredFeatures {
     ));
 
     public static final RegistryObject<ConfiguredFeature<?, ?>> WOLFRAMITE_VEIN = CONFIGURED_FEATURES.register("wolframite_vein",
+            () -> new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(OVERWORLD_WOLFRAMITE_ORES.get(), 3)));
+    public static final RegistryObject<ConfiguredFeature<?, ?>> WOLFRAMITE_VEIN_LARGE = CONFIGURED_FEATURES.register("wolframite_vein_large",
             () -> new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(OVERWORLD_WOLFRAMITE_ORES.get(), 7)));
 
     public static void register(IEventBus eventBus){

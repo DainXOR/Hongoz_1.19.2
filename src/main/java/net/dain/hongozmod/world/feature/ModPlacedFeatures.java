@@ -15,9 +15,14 @@ public class ModPlacedFeatures {
 
     public static final RegistryObject<PlacedFeature> WOLFRAMITE_ORE_PLACED = PLACED_FEATURES.register("wolframite_ore_placed",
             () -> new PlacedFeature(ModConfiguredFeatures.WOLFRAMITE_VEIN.getHolder().get(),
-                    commonOrePlacement(7, HeightRangePlacement.triangle(
+                    commonOrePlacement(4, HeightRangePlacement.triangle(
                             VerticalAnchor.absolute(-60),
                             VerticalAnchor.absolute(20)))));
+    public static final RegistryObject<PlacedFeature> WOLFRAMITE_ORE_PLACED_LARGE = PLACED_FEATURES.register("wolframite_ore_placed_large",
+            () -> new PlacedFeature(ModConfiguredFeatures.WOLFRAMITE_VEIN_LARGE.getHolder().get(),
+                    rareOrePlacement(2, HeightRangePlacement.triangle(
+                            VerticalAnchor.absolute(-60),
+                            VerticalAnchor.absolute(-20)))));
 
     private static List<PlacementModifier> orePlacement(PlacementModifier modifier, PlacementModifier modifier1) {
         return List.of(modifier, InSquarePlacement.spread(), modifier1, BiomeFilter.biome());
