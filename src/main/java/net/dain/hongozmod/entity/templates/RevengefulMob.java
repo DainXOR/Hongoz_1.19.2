@@ -12,6 +12,7 @@ import java.io.*;
 import java.util.List;
 import java.util.UUID;
 
+/*
 @ApiStatus.Experimental
 public interface RevengefulMob extends NeutralMob {
     int MAX_TARGETS = 5;
@@ -112,3 +113,4 @@ public interface RevengefulMob extends NeutralMob {
     }
 
 }
+*/

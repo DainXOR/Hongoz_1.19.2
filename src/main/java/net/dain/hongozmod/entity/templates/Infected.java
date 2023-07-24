@@ -1,11 +1,12 @@
 package net.dain.hongozmod.entity.templates;
 
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.NeutralMob;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
@@ -14,16 +15,17 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.ResetUniversalAngerTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.builder.ILoopType;
 import software.bernie.geckolib3.core.controller.AnimationController;
 import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
 import software.bernie.geckolib3.core.manager.AnimationData;
@@ -32,52 +34,108 @@ import software.bernie.geckolib3.util.GeckoLibUtil;
 
 import java.util.UUID;
 
+
 @ApiStatus.Experimental
-public class Infected extends Monster implements IAnimatable, NeutralMob {
+public abstract class Infected extends Monster implements IAnimatable, NeutralMob {
     private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
 
-    public static final AnimationBuilder IDLE_ANIMATION = newAnimation("idle", LoopType.LOOP);
-    public static final AnimationBuilder WALK_ANIMATION = newAnimation("walk", LoopType.LOOP);
-    public static final AnimationBuilder ATTACK_ANIMATION = newAnimation("attack", LoopType.PLAY_ONCE);
+    protected static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(20, 39);
+    protected static final UniformInt ALERT_INTERVAL = TimeUtil.rangeOfSeconds(4, 6);
+    protected int remainingPersistentAngerTime;
+    protected UUID persistentAngerTarget;
+    protected int ticksUntilNextAlert;
 
-    private static final EntityDataAccessor<Integer> DATA_REMAINING_ANGER_TIME = SynchedEntityData.defineId(Infected.class, EntityDataSerializers.INT);
-    private static final UniformInt PERSISTENT_ANGER_TIME = TimeUtil.rangeOfSeconds(20, 39);
-    private UUID persistentAngerTarget;
+    public static final double SEEK_SPEED_MODIFIER = 1.80d;
+    public static final double AVOID_SPEED_MODIFIER = 1.00d;
+    public static final double SCAPE_SPEED_MODIFIER = 1.00d;
 
-    private static final String ENTITY_NAME = "infected";
+    public static final boolean MUST_SEE_TARGET = true;
 
 
-    protected Infected(EntityType<? extends Monster> pEntityType, Level pLevel) {
+    public Infected(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
-
     }
 
     @Override
     protected void registerGoals() {
         //this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.8d, false));
-        this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, 1.0d));
+        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, SEEK_SPEED_MODIFIER, false));
+        this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, AVOID_SPEED_MODIFIER));
         this.goalSelector.addGoal(3, new RandomLookAroundGoal(this));
 
         this.targetSelector.addGoal(0, (new HurtByTargetGoal(this)).setAlertOthers());
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, MUST_SEE_TARGET));
         // this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Warden.class, true));
         // this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, IronGolem.class, true));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, true));
+        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, MUST_SEE_TARGET));
         // this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Monster.class, true));
-        this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, Animal.class, true));
+        this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, Animal.class, MUST_SEE_TARGET));
         // this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, LivingEntity.class, true));
-        this.targetSelector.addGoal(8, new ResetUniversalAngerTargetGoal<>(this, true));
+        this.targetSelector.addGoal(10, new ResetUniversalAngerTargetGoal<>(this, MUST_SEE_TARGET));
 
     }
 
     @Override
-    public int getRemainingPersistentAngerTime() {
-        return this.entityData.get(DATA_REMAINING_ANGER_TIME);
+    protected void customServerAiStep() {
+        this.updatePersistentAnger((ServerLevel)this.level, true);
+        if (this.getTarget() != null) {
+            this.maybeAlertOthers();
+        }
+        super.customServerAiStep();
     }
+
+    protected Class<? extends Infected> getAngryAlertType(){
+        return Infected.class;
+    }
+    protected Class<? extends Infected> getAvoidAlertType(){
+        return null;
+    }
+
+    protected int getAlertRangeY(){
+        return 128;
+    }
+
+    private void maybeAlertOthers() {
+        if (this.ticksUntilNextAlert > 0) {
+            --this.ticksUntilNextAlert;
+        }
+        else {
+            if (this.getTarget() != null && this.getSensing().hasLineOfSight(this.getTarget())) {
+                this.alertOthers();
+            }
+            this.ticksUntilNextAlert = ALERT_INTERVAL.sample(this.random);
+        }
+    }
+    private void alertOthers() {
+        double d0 = this.getAlertRangeY(); // this.getAttributeValue(Attributes.FOLLOW_RANGE);
+        AABB aabb = AABB.unitCubeFromLowerCorner(this.position()).inflate(d0, 10.0D, d0);
+        this.level.getEntitiesOfClass(this.getAngryAlertType(), aabb, EntitySelector.NO_SPECTATORS).stream()
+                .filter((entity) -> { return entity != this; })
+                .filter((entity) -> { return entity.getClass() != this.getAvoidAlertType(); })
+                .filter((entity) -> { return entity.getTarget() == null; })
+                .filter((entity) -> { return !entity.isAlliedTo(this.getTarget()); })
+                .forEach((entity) -> entity.setTarget(this.getTarget()));
+    }
+
+    @Override
+    public void addAdditionalSaveData(CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        this.addPersistentAngerSaveData(pCompound);
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.readPersistentAngerSaveData(this.level, pCompound);
+    }
+
     @Override
     public void setRemainingPersistentAngerTime(int pTime) {
-        this.entityData.set(DATA_REMAINING_ANGER_TIME, pTime);
+        remainingPersistentAngerTime = pTime;
+    }
+    @Override
+    public int getRemainingPersistentAngerTime() {
+        return remainingPersistentAngerTime;
     }
 
     @Nullable
@@ -85,49 +143,56 @@ public class Infected extends Monster implements IAnimatable, NeutralMob {
     public UUID getPersistentAngerTarget() {
         return this.persistentAngerTarget;
     }
-
     @Override
     public void setPersistentAngerTarget(@Nullable UUID pTarget) {
         this.persistentAngerTarget = pTarget;
     }
-
-
+    @Override
     public void startPersistentAngerTimer() {
         this.setRemainingPersistentAngerTime(PERSISTENT_ANGER_TIME.sample(this.random));
     }
+    @Override
+    public void setTarget(@Nullable LivingEntity pTarget) {
+        if (this.getTarget() == null && pTarget != null) {
+            this.ticksUntilNextAlert = ALERT_INTERVAL.sample(this.random);
+        }
+        if (pTarget instanceof Player) {
+            this.setLastHurtByPlayer((Player)pTarget);
+        }
 
+        super.setTarget(pTarget);
+    }
 
-    private <E extends IAnimatable> PlayState normalAnimation(AnimationEvent<E> event) {
+    protected <E extends IAnimatable> PlayState normalAnimation(AnimationEvent<E> event) {
         if(this.swinging){
             return PlayState.STOP;
         }
 
         if(event.isMoving()){
-            event.getController().setAnimation(WALK_ANIMATION);
+            event.getController().setAnimation(getAnimation("walk", LoopType.LOOP));
         }
         else{
-            event.getController().setAnimation(IDLE_ANIMATION);
+            event.getController().setAnimation(getAnimation("idle", LoopType.LOOP));
         }
         return PlayState.CONTINUE;
     }
-    private <E extends IAnimatable> PlayState attackAnimation(AnimationEvent<E> event) {
+    protected <E extends IAnimatable> PlayState attackAnimation(AnimationEvent<E> event) {
         if(this.swinging){
-            event.getController().setAnimation(ATTACK_ANIMATION);
+            event.getController().setAnimation(getAnimation("attack", LoopType.PLAY_ONCE));
             return PlayState.CONTINUE;
         }
         event.getController().markNeedsReload();
         return PlayState.STOP;
     }
-    private <E extends IAnimatable> PlayState specialAnimation(AnimationEvent<E> event) {
+    protected  <E extends IAnimatable> PlayState specialAnimation(AnimationEvent<E> event) {
         return PlayState.CONTINUE;
     }
 
-
     @Override
     public void registerControllers(AnimationData data) {
-        data.addAnimationController(newController("controller", this::normalAnimation));
-        data.addAnimationController(newController("attackController", this::attackAnimation));
-        data.addAnimationController(newController("specialController", this::specialAnimation));
+        data.addAnimationController(getController("controller", this::normalAnimation));
+        data.addAnimationController(getController("attackController", this::attackAnimation));
+        data.addAnimationController(getController("specialController", this::specialAnimation));
     }
 
     @Override
@@ -135,29 +200,16 @@ public class Infected extends Monster implements IAnimatable, NeutralMob {
         return factory;
     }
 
-    private static AnimationBuilder newAnimation(String animationName, LoopType loopType){
-        return new AnimationBuilder().addAnimation("animation." + animationName + "." + ENTITY_NAME, loopType.get());
+    public AnimationBuilder getAnimation(String animationName, LoopType loopType){
+        String className = this.getClass().getName().toLowerCase();
+        String packageName = this.getClass().getPackageName().toLowerCase() + "."; //.replaceFirst("entity", "");
+        String formattedName = className.replaceFirst(packageName, "").replaceFirst("entity", "");
+
+        return AnimationHelper.newAnimation(formattedName, animationName, loopType);
     }
-    private AnimationController newController(String name, AnimationController.IAnimationPredicate predicate){
-        return new AnimationController(this, name, 0, predicate);
+
+    public AnimationController getController(String controllerName, AnimationController.IAnimationPredicate predicate){
+        return AnimationHelper.newController(this, controllerName, predicate);
     }
 
-    enum LoopType {
-        LOOP(ILoopType.EDefaultLoopTypes.LOOP),
-        PLAY_ONCE(ILoopType.EDefaultLoopTypes.PLAY_ONCE),
-        HOLD_ON_LAST_FRAME(ILoopType.EDefaultLoopTypes.HOLD_ON_LAST_FRAME);
-
-        private final ILoopType.EDefaultLoopTypes loopType;
-
-        LoopType(ILoopType.EDefaultLoopTypes loop) {
-            this.loopType = loop;
-        }
-        LoopType() {
-            this.loopType = ILoopType.EDefaultLoopTypes.LOOP;
-        }
-
-        public ILoopType.EDefaultLoopTypes get() {
-            return loopType;
-        }
-    }
 }

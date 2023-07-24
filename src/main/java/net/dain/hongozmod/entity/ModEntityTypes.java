@@ -39,12 +39,12 @@ public class ModEntityTypes {
 
     public static final RegistryObject<EntityType<HunterEntity>> HUNTER =
             ENTITY_TYPES.register("hunter", () -> EntityType.Builder.of(HunterEntity::new, MobCategory.MONSTER)
-                    .sized(2.0f, 3.0f)
+                    .sized(1.6f, 3.0f)
                     .build(new ResourceLocation(HongozMod.MOD_ID, "hunter").toString()));
 
     public static final RegistryObject<EntityType<EvoCroaktar>> EVO_CROAKTAR =
             ENTITY_TYPES.register("evolved_croaktar", () -> EntityType.Builder.of(EvoCroaktar::new, MobCategory.MONSTER)
-                    .sized(2.0f, 2.8f)
+                    .sized(2.1f, 2.8f)
                     .build(new ResourceLocation(HongozMod.MOD_ID, "evolved_croaktar").toString()));
 
 

@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import net.dain.hongozmod.block.ModBlocks;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.entity.client.*;
+import net.dain.hongozmod.entity.custom.HunterEntity;
 import net.dain.hongozmod.item.ModItems;
 import net.dain.hongozmod.sound.ModSounds;
 import net.dain.hongozmod.world.feature.ModConfiguredFeatures;
@@ -13,6 +14,7 @@ import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.common.ForgeMod;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -58,10 +60,11 @@ public class HongozMod {
             SpawnPlacements.register(ModEntityTypes.HONZIADE.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                     Monster::checkMonsterSpawnRules);
             SpawnPlacements.register(ModEntityTypes.HUNTER.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                    Monster::checkMonsterSpawnRules);
+                    HunterEntity::checkHunterSpawnRules);
 
             SpawnPlacements.register(ModEntityTypes.EVO_CROAKTAR.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                     Monster::checkMonsterSpawnRules);
+
         });
     }
 

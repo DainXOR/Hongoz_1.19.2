@@ -1,5 +1,6 @@
 package net.dain.hongozmod.entity.custom;
 
+import net.dain.hongozmod.entity.templates.Infected;
 import net.dain.hongozmod.sound.ModSounds;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
@@ -29,12 +30,7 @@ import software.bernie.geckolib3.core.manager.AnimationData;
 import software.bernie.geckolib3.core.manager.AnimationFactory;
 import software.bernie.geckolib3.util.GeckoLibUtil;
 
-public class CroaktarEntity extends Monster implements IAnimatable{
-    public static final AnimationBuilder IDLE_ANIMATION = new AnimationBuilder().addAnimation("animation.croaktar.idle", ILoopType.EDefaultLoopTypes.LOOP);
-    public static final AnimationBuilder WALK_ANIMATION = new AnimationBuilder().addAnimation("animation.croaktar.walk", ILoopType.EDefaultLoopTypes.LOOP);
-    public static final AnimationBuilder ATTACK_ANIMATION = new AnimationBuilder().addAnimation("animation.croaktar.attack", ILoopType.EDefaultLoopTypes.PLAY_ONCE);
-
-    private final AnimationFactory factory = GeckoLibUtil.createFactory(this);
+public class CroaktarEntity extends Infected {
 
     public CroaktarEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -68,71 +64,23 @@ public class CroaktarEntity extends Monster implements IAnimatable{
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Animal.class, true));
     }
 
-    private <E extends IAnimatable> PlayState predicate(AnimationEvent<E> event) {
-        if(event.isMoving()){
-            event.getController().setAnimation(IDLE_ANIMATION);
-            return PlayState.CONTINUE;
-        }
-
-        event.getController().setAnimation(WALK_ANIMATION);
-
-        return PlayState.CONTINUE;
-    }
-    private <E extends IAnimatable> PlayState attackPredicate(AnimationEvent<E> event) {
-        if(this.swinging && event.getController().getAnimationState().equals(AnimationState.Stopped)){
-            event.getController().markNeedsReload();
-            event.getController().setAnimation(ATTACK_ANIMATION);
-            this.swinging = false;
-        }
-        return PlayState.CONTINUE;
-    }
-
     @Override
-    public void registerControllers(AnimationData data) {
-        data.addAnimationController(new AnimationController(this, "controller", 0, event -> {
-            if(!this.swinging){
-                if(event.isMoving()){
-                    event.getController().setAnimation(WALK_ANIMATION);
-                }
-                else{
-                    event.getController().setAnimation(IDLE_ANIMATION);
-                }
-                return PlayState.CONTINUE;
-            }
-
-            return PlayState.STOP;
-        }));
-        data.addAnimationController(new AnimationController(this, "attackController", 0, event -> {
-            if(this.swinging){
-                event.getController().setAnimation(ATTACK_ANIMATION);
-                return PlayState.CONTINUE;
-            }
-            event.getController().markNeedsReload();
-            return PlayState.STOP;
-        }));
+    protected Class<? extends Infected> getAvoidAlertType() {
+        return HunterEntity.class;
     }
-
-    @Override
-    public AnimationFactory getFactory() {
-        return factory;
-    }
-
 
     @Override
     protected void playStepSound(BlockPos blockPos, BlockState blockState) {
         super.playStepSound(blockPos, blockState);
     }
-
     @Override
     protected SoundEvent getAmbientSound() {
         return ModSounds.ZHONGO_AMBIENT.get();
     }
-
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
         return ModSounds.ZHONGO_HURT.get();
     }
-
     @Override
     protected SoundEvent getDeathSound() {
         return ModSounds.ZHONGO_DEATH.get();
