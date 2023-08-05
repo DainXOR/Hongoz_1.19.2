@@ -5,7 +5,7 @@
       "rolls": {
         "type": "minecraft:binomial",
         "n": 2,
-        "p": 0.6
+        "p": 0.8
       },
       "bonus_rolls": 0.5,
       "entries": [

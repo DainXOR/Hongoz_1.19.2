@@ -1,5 +1,6 @@
 package net.dain.hongozmod.entity.custom;
 
+import net.dain.hongozmod.entity.custom.hunter.HunterEntity;
 import net.dain.hongozmod.entity.templates.Infected;
 import net.dain.hongozmod.sound.ModSounds;
 import net.minecraft.core.BlockPos;
@@ -15,6 +16,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
+import net.minecraft.world.entity.ai.goal.target.ResetUniversalAngerTargetGoal;
+import net.minecraft.world.entity.animal.AbstractGolem;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.Monster;
@@ -22,6 +25,9 @@ import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PickaxeItem;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -30,15 +36,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib3.core.IAnimatable;
-import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.builder.ILoopType;
-import software.bernie.geckolib3.core.controller.AnimationController;
-import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
-import software.bernie.geckolib3.core.manager.AnimationData;
-import software.bernie.geckolib3.core.manager.AnimationFactory;
-import software.bernie.geckolib3.util.GeckoLibUtil;
+
+import java.util.Random;
 
 public class HordenEntity extends Infected {
 
@@ -98,43 +97,47 @@ public class HordenEntity extends Infected {
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource damageSource, float pAmount) {
-        if (this.level.isClientSide()){
-            return false;
-        }
-
+    public float customHurt(DamageSource pSource, float pAmount) {
         float newDamage = pAmount;
         float multiplier = 1 / 3f;
 
-        Entity entity = damageSource.getDirectEntity();
-        if (entity instanceof AbstractArrow) {
-            newDamage = 1;
-        }
-        else if (entity instanceof LivingEntity livingEntity){
-            if(livingEntity.getMainHandItem().getItem() instanceof PickaxeItem item){
-                multiplier = item.getTier().getLevel();
+        if(pSource.getDirectEntity() != null){
+            Entity entity = pSource.getDirectEntity();
+
+            if (entity instanceof AbstractArrow) {
+                newDamage = 1;
             }
+            else if (entity instanceof LivingEntity livingEntity){
+                if(livingEntity.getMainHandItem().getItem() instanceof PickaxeItem item){
+                    multiplier = item.getTier().getLevel() + 1;
 
-            newDamage *= multiplier;
+                    int dropCount = (multiplier >= 3 && this.random.nextFloat() >= (0.99f - ((multiplier * multiplier) / 1000))) ? 1 : 0;
+                    ItemStack hitDrop = Items.NETHERITE_SCRAP.getDefaultInstance();
+                    hitDrop.setCount(dropCount);
+                    this.spawnAtLocation(hitDrop);
+                }
+                newDamage *= multiplier;
+            }
         }
 
-        return super.hurt(damageSource, newDamage);
+        return newDamage;
     }
 
     @Override
     protected void registerGoals() {
-        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, 1.2d, false));
-        this.goalSelector.addGoal(4, new WaterAvoidingRandomStrollGoal(this, 1.0d));
+        this.goalSelector.addGoal(1, new WaterAvoidingRandomStrollGoal(this, 1.0d));
+        this.goalSelector.addGoal(2, new LookAtPlayerGoal(this, Player.class, 32));
+        this.goalSelector.addGoal(3, new MeleeAttackGoal(this, 1.2d, false));
         this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
-        this.goalSelector.addGoal(5, new LookAtPlayerGoal(this, Player.class, 32));
 
 
-        this.targetSelector.addGoal(0, new HurtByTargetGoal(this));
+        this.targetSelector.addGoal(0, (new HurtByTargetGoal(this)).setAlertOthers());
         this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, IronGolem.class, true));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, AbstractGolem.class, true));
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Warden.class, true));
         this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, true));
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Animal.class, true));
+        this.targetSelector.addGoal(10, new ResetUniversalAngerTargetGoal<>(this, true));
     }
 
     @Override

@@ -28,4 +28,17 @@ public class HonziadeRenderer extends GeoEntityRenderer<HonziadeEntity> {
         poseStack.scale(0.8f, 0.8f, 0.8f);
         return super.getRenderType(animatable, partialTick, poseStack, bufferSource, buffer, packedLight, texture);
     }
+
+    public static class Queen extends HonziadeRenderer{
+        public Queen(EntityRendererProvider.Context renderManager) {
+            super(renderManager);
+            this.shadowRadius = 2.0f;
+        }
+
+        @Override
+        public RenderType getRenderType(HonziadeEntity animatable, float partialTick, PoseStack poseStack, @Nullable MultiBufferSource bufferSource, @Nullable VertexConsumer buffer, int packedLight, ResourceLocation texture) {
+            poseStack.scale(2.5f, 2.5f, 2.5f);
+            return super.getRenderType(animatable, partialTick, poseStack, bufferSource, buffer, packedLight, texture);
+        }
+    }
 }

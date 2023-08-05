@@ -2,6 +2,7 @@ package net.dain.hongozmod.entity;
 
 import net.dain.hongozmod.HongozMod;
 import net.dain.hongozmod.entity.custom.*;
+import net.dain.hongozmod.entity.custom.hunter.HunterEntity;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -34,7 +35,7 @@ public class ModEntityTypes {
 
     public static final RegistryObject<EntityType<HonziadeEntity>> HONZIADE =
             ENTITY_TYPES.register("honziade", () -> EntityType.Builder.of(HonziadeEntity::new, MobCategory.MONSTER)
-                    .sized(1.0f, 1.0f)
+                    .sized(1.4f, 1.1f)
                     .build(new ResourceLocation(HongozMod.MOD_ID, "honziade").toString()));
 
     public static final RegistryObject<EntityType<HunterEntity>> HUNTER =
@@ -44,9 +45,13 @@ public class ModEntityTypes {
 
     public static final RegistryObject<EntityType<EvoCroaktar>> EVO_CROAKTAR =
             ENTITY_TYPES.register("evolved_croaktar", () -> EntityType.Builder.of(EvoCroaktar::new, MobCategory.MONSTER)
-                    .sized(2.1f, 2.8f)
+                    .sized(2.6f, 2.8f)
                     .build(new ResourceLocation(HongozMod.MOD_ID, "evolved_croaktar").toString()));
 
+    public static final RegistryObject<EntityType<HonziadeEntity.Queen>> HONZIADE_QUEEN =
+            ENTITY_TYPES.register("honziade_queen", () -> EntityType.Builder.of(HonziadeEntity.Queen::new, MobCategory.MONSTER)
+                    .sized(3.9f, 2.5f)
+                    .build(new ResourceLocation(HongozMod.MOD_ID, "honziade").toString()));
 
     public static void register(IEventBus eventBus) {
         ENTITY_TYPES.register(eventBus);

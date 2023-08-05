@@ -3,6 +3,7 @@ package net.dain.hongozmod.event;
 import net.dain.hongozmod.HongozMod;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.entity.custom.*;
+import net.dain.hongozmod.entity.custom.hunter.HunterEntity;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -25,6 +26,8 @@ public class ModEvents {
             event.put(ModEntityTypes.HUNTER.get(), HunterEntity.setAttributes());
 
             event.put(ModEntityTypes.EVO_CROAKTAR.get(), EvoCroaktar.setAttributes());
+            event.put(ModEntityTypes.HONZIADE_QUEEN.get(), HonziadeEntity.Queen.setAttributes());
+
         }
     }
 }

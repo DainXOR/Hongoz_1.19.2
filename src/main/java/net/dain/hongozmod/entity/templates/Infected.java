@@ -4,10 +4,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
-import net.minecraft.world.entity.EntitySelector;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.NeutralMob;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
@@ -15,13 +13,16 @@ import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.ResetUniversalAngerTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.Wolf;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
@@ -44,6 +45,9 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
     protected int remainingPersistentAngerTime;
     protected UUID persistentAngerTarget;
     protected int ticksUntilNextAlert;
+
+    protected boolean triedAlertAllies = false;
+    protected int alertedAlliesAmount = 0;
 
     public static final double SEEK_SPEED_MODIFIER = 1.80d;
     public static final double AVOID_SPEED_MODIFIER = 1.00d;
@@ -71,8 +75,37 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
         // this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Monster.class, true));
         this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, Animal.class, MUST_SEE_TARGET));
         // this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, LivingEntity.class, true));
-        this.targetSelector.addGoal(10, new ResetUniversalAngerTargetGoal<>(this, MUST_SEE_TARGET));
+        this.targetSelector.addGoal(10, new ResetUniversalAngerTargetGoal<>(this, true));
 
+    }
+
+    public float customHurt(DamageSource pSource, float pAmount){
+        float newDamage = pAmount;
+        float damageMultiplier = 1.0f;
+        float tierMultiplier = 0.5f;
+        int itemTier = 0;
+
+        if (pSource.getEntity() instanceof LivingEntity livingEntity){
+            if(livingEntity.getMainHandItem().getItem() instanceof TieredItem item){
+                itemTier = item.getTier().getLevel();
+                tierMultiplier =
+                        item instanceof SwordItem?  0.5f :
+                        item instanceof AxeItem?    1.0f :
+                        item instanceof HoeItem?    2.0f :
+                        0;
+
+                tierMultiplier *= EnchantmentHelper.getFireAspect(livingEntity);
+            }
+        }
+        damageMultiplier += (itemTier * tierMultiplier) + 1.0f;
+        damageMultiplier += pSource.isFire()? 2 : 0;
+        newDamage *= damageMultiplier;
+
+        return newDamage;
+    }
+    @Override
+    public boolean hurt(@NotNull DamageSource pSource, float pAmount) {
+        return super.hurt(pSource, this.customHurt(pSource, pAmount));
     }
 
     @Override
@@ -90,8 +123,7 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
     protected Class<? extends Infected> getAvoidAlertType(){
         return null;
     }
-
-    protected int getAlertRangeY(){
+    protected int getAlertRange(){
         return 128;
     }
 
@@ -100,21 +132,35 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
             --this.ticksUntilNextAlert;
         }
         else {
+            this.alertedAlliesAmount = 0;
             if (this.getTarget() != null && this.getSensing().hasLineOfSight(this.getTarget())) {
                 this.alertOthers();
+                triedAlertAllies = true;
+            } else if (this.getTarget() == null) {
+                triedAlertAllies = false;
             }
             this.ticksUntilNextAlert = ALERT_INTERVAL.sample(this.random);
         }
     }
     private void alertOthers() {
-        double d0 = this.getAlertRangeY(); // this.getAttributeValue(Attributes.FOLLOW_RANGE);
+        double d0 = this.getAlertRange(); // this.getAttributeValue(Attributes.FOLLOW_RANGE);
         AABB aabb = AABB.unitCubeFromLowerCorner(this.position()).inflate(d0, 10.0D, d0);
         this.level.getEntitiesOfClass(this.getAngryAlertType(), aabb, EntitySelector.NO_SPECTATORS).stream()
                 .filter((entity) -> { return entity != this; })
                 .filter((entity) -> { return entity.getClass() != this.getAvoidAlertType(); })
                 .filter((entity) -> { return entity.getTarget() == null; })
                 .filter((entity) -> { return !entity.isAlliedTo(this.getTarget()); })
-                .forEach((entity) -> entity.setTarget(this.getTarget()));
+                .forEach((entity) -> {
+                    entity.setTarget(this.getTarget());
+                    alertedAlliesAmount++;
+                });
+    }
+
+    public boolean alertedAllies(){
+        return triedAlertAllies;
+    }
+    public int getAlertedAlliesAmount() {
+        return alertedAlliesAmount;
     }
 
     @Override
@@ -200,12 +246,17 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
         return factory;
     }
 
-    public AnimationBuilder getAnimation(String animationName, LoopType loopType){
+    public String getEntityName(){
         String className = this.getClass().getName().toLowerCase();
         String packageName = this.getClass().getPackageName().toLowerCase() + "."; //.replaceFirst("entity", "");
-        String formattedName = className.replaceFirst(packageName, "").replaceFirst("entity", "");
 
-        return AnimationHelper.newAnimation(formattedName, animationName, loopType);
+        return className.replaceFirst(packageName, "")
+                .replaceFirst("entity", "")
+                .replaceFirst("evo", "evolved_");
+    }
+
+    public AnimationBuilder getAnimation(String animationName, LoopType loopType){
+        return AnimationHelper.newAnimation(getEntityName(), animationName, loopType);
     }
 
     public AnimationController getController(String controllerName, AnimationController.IAnimationPredicate predicate){
