@@ -19,6 +19,8 @@ public class ModEvents {
 
         @SubscribeEvent
         public static void entityAttributeEvent(EntityAttributeCreationEvent event) {
+            event.put(ModEntityTypes.MAGGOT.get(), Maggot.setAttributes());
+
             event.put(ModEntityTypes.ZHONGO.get(), ZhongoEntity.setAttributes());
             event.put(ModEntityTypes.HORDEN.get(), HordenEntity.setAttributes());
             event.put(ModEntityTypes.CROAKTAR.get(), CroaktarEntity.setAttributes());

@@ -15,6 +15,11 @@ import net.minecraftforge.registries.RegistryObject;
 public class ModEntityTypes {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, HongozMod.MOD_ID);
 
+    public static final RegistryObject<EntityType<Maggot>> MAGGOT =
+            ENTITY_TYPES.register("fungi_maggot", () -> EntityType.Builder.of(Maggot::new, MobCategory.MONSTER)
+                    .sized(0.4f, 0.3f)
+                    .build(new ResourceLocation(HongozMod.MOD_ID, "fungi_maggot").toString()));
+
     public static final RegistryObject<EntityType<ZhongoEntity>> ZHONGO =
             ENTITY_TYPES.register("zhongo", () -> EntityType.Builder.of(ZhongoEntity::new, MobCategory.MONSTER)
                     .sized(0.5f, 2.0f)

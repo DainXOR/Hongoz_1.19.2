@@ -188,8 +188,6 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         return false;
     }
     boolean canBecomeQueen(){
-        LogUtils.getLogger().debug("Age: " + this.age);
-
         return  (this.getClosestQueen().getB() > this.getAlertRange() * 1.5f) &&
                     ((this.age >= SUITABLE_AGE && this.getHealth() == this.getMaxHealth() && !this.isAggressive()) ||
                      (this.isAggressive() && this.alertedAllies() && this.getAlertedAlliesAmount() == 0 && this.getHealth() <= this.getMaxHealth() * 0.75f));

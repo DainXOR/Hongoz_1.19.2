@@ -74,6 +74,8 @@ public class HongozMod {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event)
         {
+            EntityRenderers.register(ModEntityTypes.MAGGOT.get(), MaggotRenderer::new);
+
             EntityRenderers.register(ModEntityTypes.ZHONGO.get(), ZhongoRenderer::new);
             EntityRenderers.register(ModEntityTypes.HORDEN.get(), HordenRenderer::new);
             EntityRenderers.register(ModEntityTypes.CROAKTAR.get(), CroaktarRenderer::new);

@@ -157,10 +157,10 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
     }
 
     public boolean alertedAllies(){
-        return triedAlertAllies;
+        return this.triedAlertAllies;
     }
     public int getAlertedAlliesAmount() {
-        return alertedAlliesAmount;
+        return this.alertedAlliesAmount;
     }
 
     @Override
@@ -168,7 +168,6 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
         super.addAdditionalSaveData(pCompound);
         this.addPersistentAngerSaveData(pCompound);
     }
-
     @Override
     public void readAdditionalSaveData(CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
