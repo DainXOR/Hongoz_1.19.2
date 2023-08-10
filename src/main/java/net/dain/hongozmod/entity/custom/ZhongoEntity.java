@@ -82,4 +82,8 @@ public class ZhongoEntity extends Infected {
         return ModSounds.ZHONGO_DEATH.get();
     }
 
+    @Override
+    public float getShadowRadius() {
+        return 0.3f;
+    }
 }

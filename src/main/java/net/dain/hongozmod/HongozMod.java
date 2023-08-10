@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import net.dain.hongozmod.block.ModBlocks;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.entity.client.*;
+import net.dain.hongozmod.entity.custom.*;
 import net.dain.hongozmod.entity.custom.hunter.HunterEntity;
 import net.dain.hongozmod.item.ModItems;
 import net.dain.hongozmod.sound.ModSounds;
@@ -74,16 +75,18 @@ public class HongozMod {
         @SubscribeEvent
         public static void onClientSetup(FMLClientSetupEvent event)
         {
-            EntityRenderers.register(ModEntityTypes.MAGGOT.get(), MaggotRenderer::new);
+            EntityRenderers.register(ModEntityTypes.FUNGI_EGG.get(), InfectedRenderer::new);
+            EntityRenderers.register(ModEntityTypes.MAGGOT.get(), InfectedRenderer::new);
+            EntityRenderers.register(ModEntityTypes.BEACON.get(), InfectedRenderer::new);
 
-            EntityRenderers.register(ModEntityTypes.ZHONGO.get(), ZhongoRenderer::new);
-            EntityRenderers.register(ModEntityTypes.HORDEN.get(), HordenRenderer::new);
-            EntityRenderers.register(ModEntityTypes.CROAKTAR.get(), CroaktarRenderer::new);
-            EntityRenderers.register(ModEntityTypes.HONZIADE.get(), HonziadeRenderer::new);
-            EntityRenderers.register(ModEntityTypes.HUNTER.get(), HunterRenderer::new);
+            EntityRenderers.register(ModEntityTypes.ZHONGO.get(), InfectedRenderer::new);
+            EntityRenderers.register(ModEntityTypes.HORDEN.get(), InfectedRenderer::new);
+            EntityRenderers.register(ModEntityTypes.CROAKTAR.get(), InfectedRenderer::new);
+            EntityRenderers.register(ModEntityTypes.HONZIADE.get(), InfectedRenderer::new);
+            EntityRenderers.register(ModEntityTypes.HUNTER.get(), InfectedRenderer::new);
 
-            EntityRenderers.register(ModEntityTypes.EVO_CROAKTAR.get(), EvoCroaktarRenderer::new);
-            EntityRenderers.register(ModEntityTypes.HONZIADE_QUEEN.get(), HonziadeRenderer.Queen::new);
+            EntityRenderers.register(ModEntityTypes.EVO_CROAKTAR.get(), InfectedRenderer::new);
+            EntityRenderers.register(ModEntityTypes.HONZIADE_QUEEN.get(), InfectedRenderer::new);
         }
     }
 }

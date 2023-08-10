@@ -9,6 +9,9 @@
   "item.hongoz.honziade_queen_spawn_egg": "Honziade Queen Spawn Egg",
   "item.hongoz.evolved_croaktar_spawn_egg": "Evolved Croaktar Spawn Egg",
   "item.hongoz.hunter_spawn_egg": "Hunter Spawn Egg",
+  "item.hongoz.fungi_egg_spawn_egg": "Fungi Egg Spawn Egg",
+  "item.hongoz.fungi_maggot_spawn_egg": "Maggot Spawn Egg",
+  "item.hongoz.beacon_spawn_egg": "Beacon Spawn Egg",
 
   "block.hongoz.wolframite_ore": "Wolframite Ore",
   "block.hongoz.deepslate_wolframite_ore": "Deepslate Wolframite Ore",
@@ -18,8 +21,12 @@
   "entity.hongoz.horden": "Horden",
   "entity.hongoz.croaktar": "Croaktar",
   "entity.hongoz.honziade": "Honziade",
+  "entity.hongoz.honziade_queen": "Honziade Queen",
   "entity.hongoz.evolved_croaktar": "Evolved Croaktar",
   "entity.hongoz.hunter": "Hunter",
+  "entity.hongoz.fungi_egg": "Infected Egg",
+  "entity.hongoz.fungi_maggot": "Maggot",
+  "entity.hongoz.beacon": "Beacon",
 
   "sounds.hongoz.zhongo_idle": "Zhongo growl",
   "sounds.hongoz.zhongo_step": "footsteps",

@@ -1,5 +1,6 @@
 package net.dain.hongozmod.entity.custom;
 
+import com.mojang.math.Vector3f;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.entity.templates.Infected;
 import net.minecraft.world.entity.*;
@@ -23,6 +24,7 @@ import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
 
 public class Maggot extends Infected {
+    public static final float SHADOW_RADIUS = 0.1f;
 
     public Maggot(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -80,5 +82,10 @@ public class Maggot extends Infected {
     @Override
     public String getEntityName() {
         return "fungi_maggot";
+    }
+
+    @Override
+    public float getShadowRadius() {
+        return 0.2f;
     }
 }

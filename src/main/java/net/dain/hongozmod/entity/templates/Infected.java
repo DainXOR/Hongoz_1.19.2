@@ -1,5 +1,6 @@
 package net.dain.hongozmod.entity.templates;
 
+import com.mojang.math.Vector3f;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.TimeUtil;
@@ -52,6 +53,8 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
     public static final double SEEK_SPEED_MODIFIER = 1.80d;
     public static final double AVOID_SPEED_MODIFIER = 1.00d;
     public static final double SCAPE_SPEED_MODIFIER = 1.00d;
+
+    public static final float SHADOW_RADIUS = 1.0f;
 
     public static final boolean MUST_SEE_TARGET = true;
 
@@ -247,7 +250,7 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
 
     public String getEntityName(){
         String className = this.getClass().getName().toLowerCase();
-        String packageName = this.getClass().getPackageName().toLowerCase() + "."; //.replaceFirst("entity", "");
+        String packageName = this.getClass().getPackageName().toLowerCase() + ".";;
 
         return className.replaceFirst(packageName, "")
                 .replaceFirst("entity", "")
@@ -260,6 +263,14 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
 
     public AnimationController getController(String controllerName, AnimationController.IAnimationPredicate predicate){
         return AnimationHelper.newController(this, controllerName, predicate);
+    }
+
+    public Vector3f getModelScale(){
+        return new Vector3f(1.0f, 1.0f, 1.0f);
+    }
+
+    public float getShadowRadius(){
+        return 1.0f;
     }
 
 }

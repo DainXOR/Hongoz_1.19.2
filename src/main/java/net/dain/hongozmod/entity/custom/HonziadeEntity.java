@@ -1,6 +1,7 @@
 package net.dain.hongozmod.entity.custom;
 
 import com.mojang.logging.LogUtils;
+import com.mojang.math.Vector3f;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.entity.templates.Infected;
 import net.dain.hongozmod.sound.ModSounds;
@@ -89,7 +90,7 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         return HonziadeEntity.class;
     }
     protected int getAlertRange() {
-        return 1000;
+        return 5000;
     }
 
     void addHonziadeAgeSaveData(CompoundTag pNbt) {
@@ -280,6 +281,11 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         return SoundEvents.HOSTILE_DEATH;
     }
 
+    @Override
+    public Vector3f getModelScale() {
+        return new Vector3f(0.8f, 0.8f, 0.8f);
+    }
+
     public static class Queen extends HonziadeEntity {
         public static final UniformInt REINFORCEMENTS_AMOUNT = UniformInt.of(2, 8);
         public static final float MIN_REINFORCEMENT_WAIT_PROGRESS = 0.25f;
@@ -331,18 +337,17 @@ public class HonziadeEntity extends Infected implements IAnimatable{
                 return true;
             }
 
-            boolean hasTarget = this.getTarget() != null;
             boolean surpassThreshold = waitProgress >= MIN_REINFORCEMENT_WAIT_PROGRESS;
-            boolean randomComponent = this.random.nextFloat() >= 0.9f;
+            boolean randomComponent = this.random.nextFloat() + waitProgress >= 0.95f;
 
-            return hasTarget && surpassThreshold && randomComponent;
+            return this.isAggressive() && surpassThreshold && randomComponent;
         }
         public boolean maybeSpawnReinforcements(){
             float waitProgress = (float)REINFORCEMENTS_TICKS / (float)REINFORCEMENTS_COOLDOWN;
 
             if(this.canSpawnReinforcements(waitProgress)){
-                int reinforcementCount = this.getTarget() != null?
-                        (int)(REINFORCEMENTS_AMOUNT.getMaxValue() * waitProgress) :
+                int reinforcementCount = this.isAggressive()?
+                        (int)(REINFORCEMENTS_AMOUNT.getMinValue() * (1 + waitProgress)) :
                         REINFORCEMENTS_AMOUNT.sample(this.random);
 
                 return this.spawnReinforcements(reinforcementCount);
@@ -391,7 +396,6 @@ public class HonziadeEntity extends Infected implements IAnimatable{
             super.onRemovedFromWorld();
         }
 
-
         protected void playStepSound(BlockPos blockPos, BlockState blockState) {
             this.playSound(SoundEvents.SPIDER_STEP, 3.0F, 0.2F);
         }
@@ -415,6 +419,15 @@ public class HonziadeEntity extends Infected implements IAnimatable{
 
         public String getEntityName(){
             return "honziade";
+        }
+
+        @Override
+        public Vector3f getModelScale() {
+            return new Vector3f(2.5f, 2.5f, 2.5f);
+        }
+        @Override
+        public float getShadowRadius() {
+            return 2.0f;
         }
     }
 

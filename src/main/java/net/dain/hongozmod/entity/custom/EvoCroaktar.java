@@ -1,5 +1,6 @@
 package net.dain.hongozmod.entity.custom;
 
+import com.mojang.math.Vector3f;
 import net.dain.hongozmod.entity.templates.Infected;
 import net.dain.hongozmod.sound.ModSounds;
 import net.minecraft.core.BlockPos;
@@ -49,11 +50,11 @@ public class EvoCroaktar extends Infected {
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 65.00)
-                .add(Attributes.ATTACK_DAMAGE, 6.00)
+                .add(Attributes.ATTACK_DAMAGE, 7.00)
                 .add(Attributes.ATTACK_SPEED, 1.50)
-                .add(Attributes.MOVEMENT_SPEED, 0.45)
+                .add(Attributes.MOVEMENT_SPEED, 0.40)
                 .add(Attributes.FOLLOW_RANGE, 64.00)
-                .add(Attributes.ATTACK_KNOCKBACK, 0.30)
+                .add(Attributes.ATTACK_KNOCKBACK, 0.35)
                 .add(ForgeMod.STEP_HEIGHT_ADDITION.get(), 1.00)
                 .build();
     }
@@ -96,6 +97,15 @@ public class EvoCroaktar extends Infected {
     @Override
     protected SoundEvent getDeathSound() {
         return ModSounds.ZHONGO_DEATH.get();
+    }
+
+    @Override
+    public Vector3f getModelScale() {
+        return new Vector3f(0.7f, 0.7f, 0.7f);
+    }
+    @Override
+    public float getShadowRadius() {
+        return 2.0f;
     }
 
     public static class CroaktarLeapAtTargetGoal extends Goal {

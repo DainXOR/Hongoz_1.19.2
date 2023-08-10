@@ -18,6 +18,10 @@ public class ModItems {
             () -> new ForgeSpawnEggItem(ModEntityTypes.MAGGOT, 0x998866, 0x7d00d9,
                     new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
+    public static final RegistryObject<Item> BEACON_SPAWN_EGG = ITEMS.register("beacon_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntityTypes.BEACON, 0x998866, 0x7d00d9,
+                    new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
+
     public static final RegistryObject<Item> ZHONGO_SPAWN_EGG = ITEMS.register("zhongo_spawn_egg",
             () -> new ForgeSpawnEggItem(ModEntityTypes.ZHONGO, 0x0d0c8, 0xd6c3aa,
                     new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
