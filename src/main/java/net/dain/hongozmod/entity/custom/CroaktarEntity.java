@@ -59,7 +59,7 @@ public class CroaktarEntity extends Infected {
     }
 
     @Override
-    protected Class<? extends Infected> getAvoidAlertType() {
+    public Class<? extends Infected> getAvoidAlertType() {
         return HunterEntity.class;
     }
 

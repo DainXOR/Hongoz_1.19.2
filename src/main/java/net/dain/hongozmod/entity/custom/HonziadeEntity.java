@@ -86,10 +86,10 @@ public class HonziadeEntity extends Infected implements IAnimatable{
 
     }
 
-    protected Class<? extends Infected> getAngryAlertType() {
+    public Class<? extends Infected> getAngryAlertType() {
         return HonziadeEntity.class;
     }
-    protected int getAlertRange() {
+    public int getAlertRange() {
         return 5000;
     }
 
@@ -101,12 +101,12 @@ public class HonziadeEntity extends Infected implements IAnimatable{
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag pCompound) {
+    public void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
         this.addHonziadeAgeSaveData(pCompound);
     }
     @Override
-    public void readAdditionalSaveData(CompoundTag pCompound) {
+    public void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         this.readHonziadeAgeSaveData(pCompound);
     }
@@ -327,7 +327,7 @@ public class HonziadeEntity extends Infected implements IAnimatable{
             this.targetSelector.addGoal(10, new ResetUniversalAngerTargetGoal<>(this, true));
         }
 
-        protected Class<? extends Infected> getAvoidAlertType(){
+        public Class<? extends Infected> getAvoidAlertType(){
             return Queen.class;
         }
 

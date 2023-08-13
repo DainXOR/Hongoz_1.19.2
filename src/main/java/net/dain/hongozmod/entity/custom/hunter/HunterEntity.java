@@ -214,7 +214,7 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
     }
 
     @Override
-    protected Class<? extends Infected> getAngryAlertType() {
+    public Class<? extends Infected> getAngryAlertType() {
         return HunterEntity.class;
     }
 

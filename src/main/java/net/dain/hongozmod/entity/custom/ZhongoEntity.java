@@ -58,7 +58,7 @@ public class ZhongoEntity extends Infected {
     }
 
     @Override
-    protected Class<? extends Infected> getAvoidAlertType() {
+    public Class<? extends Infected> getAvoidAlertType() {
         return HunterEntity.class;
     }
 

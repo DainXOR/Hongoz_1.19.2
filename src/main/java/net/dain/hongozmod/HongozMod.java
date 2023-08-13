@@ -4,7 +4,6 @@ import com.mojang.logging.LogUtils;
 import net.dain.hongozmod.block.ModBlocks;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.entity.client.*;
-import net.dain.hongozmod.entity.custom.*;
 import net.dain.hongozmod.entity.custom.hunter.HunterEntity;
 import net.dain.hongozmod.item.ModItems;
 import net.dain.hongozmod.sound.ModSounds;
@@ -25,7 +24,6 @@ import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import software.bernie.geckolib3.GeckoLib;
 
-// The value here should match an entry in the META-INF/mods.toml file
 @Mod(HongozMod.MOD_ID)
 public class HongozMod {
     public static final String MOD_ID = "hongoz";
@@ -66,6 +64,8 @@ public class HongozMod {
                     Monster::checkMonsterSpawnRules);
 
         });
+
+        //ModNetworking.register();
     }
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent

@@ -1,25 +1,19 @@
 package net.dain.hongozmod.entity.templates;
 
 import com.mojang.math.Vector3f;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.goal.MeleeAttackGoal;
-import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
-import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.ResetUniversalAngerTargetGoal;
-import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.monster.Monster;
-import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.ApiStatus;
@@ -33,7 +27,6 @@ import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
 import software.bernie.geckolib3.core.manager.AnimationData;
 import software.bernie.geckolib3.core.manager.AnimationFactory;
 import software.bernie.geckolib3.util.GeckoLibUtil;
-
 import java.util.UUID;
 
 
@@ -50,36 +43,14 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
     protected boolean triedAlertAllies = false;
     protected int alertedAlliesAmount = 0;
 
-    public static final double SEEK_SPEED_MODIFIER = 1.80d;
-    public static final double AVOID_SPEED_MODIFIER = 1.00d;
-    public static final double SCAPE_SPEED_MODIFIER = 1.00d;
-
-    public static final float SHADOW_RADIUS = 1.0f;
-
-    public static final boolean MUST_SEE_TARGET = true;
-
-
     public Infected(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
     }
 
     @Override
     protected void registerGoals() {
-        //this.goalSelector.addGoal(0, new FloatGoal(this));
-        this.goalSelector.addGoal(1, new MeleeAttackGoal(this, SEEK_SPEED_MODIFIER, false));
-        this.goalSelector.addGoal(2, new WaterAvoidingRandomStrollGoal(this, AVOID_SPEED_MODIFIER));
-        this.goalSelector.addGoal(3, new RandomLookAroundGoal(this));
-
         this.targetSelector.addGoal(0, (new HurtByTargetGoal(this)).setAlertOthers());
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, MUST_SEE_TARGET));
-        // this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Warden.class, true));
-        // this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, IronGolem.class, true));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, MUST_SEE_TARGET));
-        // this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Monster.class, true));
-        this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, Animal.class, MUST_SEE_TARGET));
-        // this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, LivingEntity.class, true));
         this.targetSelector.addGoal(10, new ResetUniversalAngerTargetGoal<>(this, true));
-
     }
 
     public float customHurt(DamageSource pSource, float pAmount){
@@ -120,17 +91,17 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
         super.customServerAiStep();
     }
 
-    protected Class<? extends Infected> getAngryAlertType(){
+    public Class<? extends Infected> getAngryAlertType(){
         return Infected.class;
     }
-    protected Class<? extends Infected> getAvoidAlertType(){
+    public Class<? extends Infected> getAvoidAlertType(){
         return null;
     }
-    protected int getAlertRange(){
+    public int getAlertRange(){
         return 128;
     }
 
-    private void maybeAlertOthers() {
+    protected final void maybeAlertOthers() {
         if (this.ticksUntilNextAlert > 0) {
             --this.ticksUntilNextAlert;
         }
@@ -145,14 +116,18 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
             this.ticksUntilNextAlert = ALERT_INTERVAL.sample(this.random);
         }
     }
-    private void alertOthers() {
+    protected final void alertOthers() {
+        if (this.getTarget() == null){
+            return;
+        }
+
         double d0 = this.getAlertRange(); // this.getAttributeValue(Attributes.FOLLOW_RANGE);
         AABB aabb = AABB.unitCubeFromLowerCorner(this.position()).inflate(d0, 10.0D, d0);
         this.level.getEntitiesOfClass(this.getAngryAlertType(), aabb, EntitySelector.NO_SPECTATORS).stream()
-                .filter((entity) -> { return entity != this; })
-                .filter((entity) -> { return entity.getClass() != this.getAvoidAlertType(); })
-                .filter((entity) -> { return entity.getTarget() == null; })
-                .filter((entity) -> { return !entity.isAlliedTo(this.getTarget()); })
+                .filter((entity) -> entity != this)
+                .filter((entity) -> entity.getClass() != this.getAvoidAlertType())
+                .filter((entity) -> entity.getTarget() == null)
+                .filter((entity) -> !entity.isAlliedTo(this.getTarget()))
                 .forEach((entity) -> {
                     entity.setTarget(this.getTarget());
                     alertedAlliesAmount++;
@@ -167,12 +142,12 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag pCompound) {
+    public void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
         this.addPersistentAngerSaveData(pCompound);
     }
     @Override
-    public void readAdditionalSaveData(CompoundTag pCompound) {
+    public void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
         this.readPersistentAngerSaveData(this.level, pCompound);
     }
@@ -209,6 +184,16 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
         }
 
         super.setTarget(pTarget);
+    }
+
+    protected void addParticlesAroundSelf(ParticleOptions pParticleOption, int amount) {
+        for(int i = 0; i < amount; ++i) {
+            double d0 = this.random.nextGaussian() * 0.02D;
+            double d1 = this.random.nextGaussian() * 0.02D;
+            double d2 = this.random.nextGaussian() * 0.02D;
+            this.level.addParticle(pParticleOption, this.getRandomX(1.0D), this.getRandomY() + 0.75D, this.getRandomZ(1.0D), d0, d1, d2);
+        }
+
     }
 
     protected <E extends IAnimatable> PlayState normalAnimation(AnimationEvent<E> event) {
@@ -250,7 +235,7 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
 
     public String getEntityName(){
         String className = this.getClass().getName().toLowerCase();
-        String packageName = this.getClass().getPackageName().toLowerCase() + ".";;
+        String packageName = this.getClass().getPackageName().toLowerCase() + ".";
 
         return className.replaceFirst(packageName, "")
                 .replaceFirst("entity", "")

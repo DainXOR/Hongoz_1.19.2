@@ -4,9 +4,14 @@ import com.mojang.logging.LogUtils;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.entity.templates.Infected;
 import net.dain.hongozmod.entity.templates.LoopType;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
+import net.minecraft.server.level.ServerChunkCache;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -23,23 +28,26 @@ import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
 
 public class BeaconEntity extends Infected {
-    public static final int TICKS_TO_REGENERATE = 20;
+    public static final int TICKS_TO_REGENERATE = 20 * 5;
     public static final int REGENERATION_AMOUNT = 5;
 
-    public static final int TICKS_TO_THROW_EGG = 20 * 10;
-    public static final int EGG_THROW_DURATION = 20;
-    public static final int AGGRESSIVE_EGG_THROW_DURATION = 20 * 2;
-    public static final int EGG_THROW_AMOUNT = 3;
+    public static final int TICKS_TO_THROW = 20 * 10;
+    public static final int AGGRESSIVE_TICKS_TO_THROW = 20 * 2;
+
+    public static final int MIN_WAIT_TO_THROW = 20;
+    public static final int MAX_CONSECUTIVE_THROWS = 3;
 
     private int regenerateTimer = 0;
-    private int eggThrowTimer = 0;
-    private int isThrowingTimer = 0;
-    private int eggsThrown = 0;
+
+    private int throwTimer = 0;
+    private int minThrowWaitTimer = 0;
+    private int consecutiveThrows = 0;
 
     public BeaconEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -81,10 +89,13 @@ public class BeaconEntity extends Infected {
     @Override
     public void tick() {
         super.tick();
+        final float lastHp = this.getHealth();
+
         if(!this.level.isClientSide()){
             this.tryRegenerate();
             this.maybeThrowEgg();
         }
+
     }
 
     public boolean needToRegenerate(){
@@ -101,45 +112,60 @@ public class BeaconEntity extends Infected {
         if(this.needToRegenerate() && this.canRegenerate()) {
             regenerate();
             this.regenerateTimer = 0;
+
+            ServerLevel serverLevel = (ServerLevel) this.level;
+            ClientboundEntityEventPacket entityEventPacket = new ClientboundEntityEventPacket((Entity) this, (byte) 61);
+            ServerChunkCache scc = serverLevel.getChunkSource();
+            scc.broadcastAndSend(this, entityEventPacket);
         }
     }
 
-    public boolean canThrowEgg(){
-        return  (this.isAggressive() && !this.isThrowingEgg()) ||
-                (this.eggThrowTimer >= TICKS_TO_THROW_EGG && this.eggsThrown < EGG_THROW_AMOUNT);
+    @Override
+    public void handleEntityEvent(byte pId) {
+        if(pId == 61){
+            this.addParticlesAroundSelf(ParticleTypes.HAPPY_VILLAGER, 20);
+        } else {
+            super.handleEntityEvent(pId);
+        }
     }
+
+    public boolean canAggressiveThrow(){
+        return  this.isAggressive() && this.throwTimer >= AGGRESSIVE_TICKS_TO_THROW;
+    }
+    public boolean canNormalThrow(){
+        return this.throwTimer >= TICKS_TO_THROW;
+    }
+
     public boolean isThrowingEgg(){
-        return this.isThrowingTimer > 0;
+        return this.minThrowWaitTimer > 0;
     }
     public void maybeThrowEgg(){
+        if(this.level.isClientSide()){
+            return;
+        }
 
         if(this.isThrowingEgg()){
-            this.isThrowingTimer++;
-            if(this.isThrowingTimer >= EGG_THROW_DURATION){
-                this.isThrowingTimer = 0;
+            this.minThrowWaitTimer++;
+            if(this.minThrowWaitTimer >= MIN_WAIT_TO_THROW){
+                this.minThrowWaitTimer = 0;
             }
         }
         else {
-            this.eggThrowTimer++;
+            this.throwTimer++;
 
-            if(!this.needToRegenerate() && canThrowEgg()){
-                if (this.isAggressive() && this.getTarget() != null) {
+            if(canAggressiveThrow()){
+                if (this.needToRegenerate() && this.isAggressive() && this.getTarget() != null) {
                     this.throwEggAt(this.getTarget());
-                } else {
-                    this.throwEgg();
-                    this.eggsThrown++;
 
-                    if(this.eggsThrown >= EGG_THROW_AMOUNT)
-                        this.eggsThrown = 0;
+                } else if(!this.isThrowingEgg() && this.consecutiveThrows < MAX_CONSECUTIVE_THROWS){
+                    this.throwEgg();
+                    this.consecutiveThrows++;
                 }
 
-                this.eggThrowTimer = 0;
-                this.isThrowingTimer = 1;
-
+                this.throwTimer = 0;
+                this.minThrowWaitTimer = 1;
             }
         }
-
-
     }
     public void throwEgg(){
         double dX = (this.random.nextFloat() * 1.5) - 0.75;
@@ -157,7 +183,6 @@ public class BeaconEntity extends Infected {
 
         this.throwEggAt(normX, 0.5, normZ);
     }
-
     public void throwEggAt(double pX, double pY, double pZ){
         FungiEgg egg = ModEntityTypes.FUNGI_EGG.get().create(this.level);
         assert egg != null;
@@ -166,19 +191,18 @@ public class BeaconEntity extends Infected {
         egg.setDeltaMovement(pX, pY, pZ);
 
         this.level.addFreshEntity(egg);
+
+        this.playSound(SoundEvents.EGG_THROW, 1.0f, 0.1f);
+        //this.playSound(SoundEvents.TURTLE_LAY_EGG, 1.0f, 0.1f);
     }
 
     @Override
-    protected SoundEvent getAmbientSound() {
-        return SoundEvents.SLIME_SQUISH;
-    }
-    @Override
-    protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.SLIME_HURT_SMALL;
+    protected SoundEvent getHurtSound(@NotNull DamageSource damageSource) {
+        return SoundEvents.SLIME_HURT;
     }
     @Override
     protected SoundEvent getDeathSound() {
-        return SoundEvents.SLIME_DEATH_SMALL;
+        return SoundEvents.SLIME_DEATH;
     }
 
     @Override
@@ -186,31 +210,20 @@ public class BeaconEntity extends Infected {
         if(this.swinging || this.isThrowingEgg()){
             return PlayState.STOP;
         }
-
         event.getController().setAnimation(getAnimation("idle", LoopType.LOOP));
         return PlayState.CONTINUE;
     }
-
     @Override
     protected <E extends IAnimatable> PlayState attackAnimation(AnimationEvent<E> event) {
-        if(this.isThrowingEgg()){
-
-        }
-        if(this.swinging){
+        if(this.swinging ^ this.isThrowingEgg()){
             event.getController().setAnimation(getAnimation("attack", LoopType.PLAY_ONCE));
             return PlayState.CONTINUE;
         }
         event.getController().markNeedsReload();
         return PlayState.STOP;
     }
-
     @Override
     protected <E extends IAnimatable> PlayState specialAnimation(AnimationEvent<E> event) {
-        if(this.isThrowingTimer == 1){
-            event.getController().setAnimation(getAnimation("attack", LoopType.PLAY_ONCE));
-        }
-
-        event.getController().markNeedsReload();
         return PlayState.CONTINUE;
     }
 
