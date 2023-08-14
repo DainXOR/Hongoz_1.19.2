@@ -14,6 +14,7 @@ import net.minecraft.tags.GameEventTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -211,6 +212,19 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
         this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, Animal.class, false));
         this.targetSelector.addGoal(10, new ResetUniversalAngerTargetGoal<>(this, true));
 
+    }
+
+    @Override
+    public boolean recibeDamageFrom(Entity pEntity) {
+        return true;
+    }
+
+    @Override
+    public boolean customAddEffect(MobEffectInstance pEffectInstance, @Nullable Entity pEntity) {
+        return  !(pEffectInstance.getEffect().isBeneficial() &&
+                (!(pEntity instanceof HunterEntity ||
+                (pEntity instanceof AreaEffectCloud aoeCloud &&
+                aoeCloud.getOwner() instanceof Infected))));
     }
 
     @Override

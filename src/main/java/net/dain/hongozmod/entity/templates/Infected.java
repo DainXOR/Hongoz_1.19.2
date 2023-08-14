@@ -1,17 +1,21 @@
 package net.dain.hongozmod.entity.templates;
 
 import com.mojang.math.Vector3f;
+import net.dain.hongozmod.entity.custom.hunter.HunterEntity;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.TimeUtil;
 import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.ResetUniversalAngerTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
@@ -53,7 +57,24 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
         this.targetSelector.addGoal(10, new ResetUniversalAngerTargetGoal<>(this, true));
     }
 
+    public boolean recibeDamageFrom(Entity pEntity){
+        return  pEntity instanceof HunterEntity ||
+                !(pEntity instanceof Infected ||
+                (pEntity instanceof AreaEffectCloud aoeCloud && aoeCloud.getOwner() instanceof Infected) ||
+                (pEntity instanceof Projectile projectile && projectile.getOwner() instanceof Infected));
+    }
+
+    @Override
+    public boolean canBeAffected(MobEffectInstance pEffectInstance) {
+        return  pEffectInstance.getEffect() != MobEffects.POISON &&
+                super.canBeAffected(pEffectInstance);
+    }
+
     public float customHurt(DamageSource pSource, float pAmount){
+        if(!this.recibeDamageFrom(pSource.getEntity())){
+            return 0.0f;
+        }
+
         float newDamage = pAmount;
         float damageMultiplier = 1.0f;
         float tierMultiplier = 0.5f;
@@ -79,7 +100,17 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
     }
     @Override
     public boolean hurt(@NotNull DamageSource pSource, float pAmount) {
-        return super.hurt(pSource, this.customHurt(pSource, pAmount));
+        float newAmount = this.customHurt(pSource, pAmount);
+        return newAmount > 0 && super.hurt(pSource, newAmount);
+    }
+
+    public boolean customAddEffect(MobEffectInstance pEffectInstance, @Nullable Entity pEntity){
+        return !((!pEffectInstance.getEffect().isBeneficial()) &&
+                this.recibeDamageFrom(pEntity));
+    }
+    @Override
+    public boolean addEffect(@NotNull MobEffectInstance pEffectInstance, @Nullable Entity pEntity) {
+        return this.customAddEffect(pEffectInstance, pEntity) && super.addEffect(pEffectInstance, pEntity);
     }
 
     @Override
