@@ -157,7 +157,8 @@ public class BeaconEntity extends Infected {
     public boolean canAggressiveThrow(){
         return  this.isAggressive() &&
                 this.throwTimer >= AGGRESSIVE_TICKS_TO_THROW &&
-                this.getTarget() != null;
+                this.getTarget() != null &&
+                this.distanceToSqr(this.getTarget()) <= getAttributeValue(Attributes.FOLLOW_RANGE);
     }
     public boolean canNormalThrow(){
         return  this.consecutiveThrows > 0 ||
@@ -218,6 +219,7 @@ public class BeaconEntity extends Infected {
 
         egg.moveTo(Vec3.atCenterOf(this.blockPosition()));
         egg.setDeltaMovement(pX, pY, pZ);
+        egg.setInnerEntity(this.random.nextFloat() >= 0.8f? ModEntityTypes.MAGGOT.get() : ModEntityTypes.ZHONGO.get());
 
         this.level.addFreshEntity(egg);
 

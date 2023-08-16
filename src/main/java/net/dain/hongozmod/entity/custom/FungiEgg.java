@@ -23,7 +23,7 @@ public class FungiEgg extends Infected {
     private int animationProgress = 0;
     public boolean isHatching = false;
 
-    protected @NotNull EntityType<? extends Monster> innerEntity = ModEntityTypes.ZHONGO.get();
+    protected @NotNull EntityType<? extends Monster> innerEntity = ModEntityTypes.MAGGOT.get();
 
     public FungiEgg(EntityType<? extends Infected> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -41,6 +41,10 @@ public class FungiEgg extends Infected {
     @Override
     public boolean causeFallDamage(float pFallDistance, float pMultiplier, @NotNull DamageSource pSource) {
         return false;
+    }
+
+    public void setInnerEntity(@NotNull EntityType<? extends Monster> entityType){
+        this.innerEntity = entityType;
     }
 
     @Override
@@ -64,7 +68,7 @@ public class FungiEgg extends Infected {
 
     protected void hatch(){
         this.isHatching = true;
-        Monster inner = innerEntity.create(this.level);
+        Monster inner = this.innerEntity.create(this.level);
         assert inner != null;
 
         inner.moveTo(Vec3.atCenterOf(this.blockPosition()));
