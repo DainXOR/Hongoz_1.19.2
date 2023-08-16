@@ -1,31 +1,46 @@
 package net.dain.hongozmod.entity.custom.hunter;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.mojang.logging.LogUtils;
+import com.mojang.serialization.Dynamic;
+import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.entity.custom.HordenEntity;
 import net.dain.hongozmod.entity.templates.Infected;
 import net.dain.hongozmod.entity.templates.LoopType;
 import net.dain.hongozmod.sound.ModSounds;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.GameEventTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.Unit;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.IndirectEntityDamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.behavior.StartAttacking;
+import net.minecraft.world.entity.ai.behavior.warden.SonicBoom;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.ResetUniversalAngerTargetGoal;
+import net.minecraft.world.entity.ai.memory.MemoryModuleType;
+import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.animal.AbstractGolem;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.monster.warden.AngerLevel;
 import net.minecraft.world.entity.monster.warden.AngerManagement;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.monster.warden.WardenAi;
@@ -42,8 +57,13 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.gameevent.GameEventListener;
 import net.minecraft.world.level.gameevent.vibrations.VibrationListener;
 import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.Node;
+import net.minecraft.world.level.pathfinder.PathFinder;
+import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
 import software.bernie.geckolib3.core.builder.AnimationBuilder;
@@ -53,12 +73,16 @@ import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
 import java.time.LocalDate;
 import java.time.temporal.ChronoField;
 import java.util.Collections;
+import java.util.Optional;
 
 import static net.minecraft.world.entity.Pose.ROARING;
 
 public class HunterEntity extends Infected implements VibrationListener.VibrationListenerConfig {
+    private static final Logger LOGGER = LogUtils.getLogger();
+
     private static final int GAME_EVENT_LISTENER_RANGE = 32;
     private static final int VIBRATION_COOLDOWN_TICKS = 40;
+    private static final int TIME_TO_USE_MELEE_UNTIL_SMASH = 200;
     private static final int MAX_HEALTH = 750;
     private static final float MOVEMENT_SPEED_WHEN_FIGHTING = 0.3F;
     private static final float KNOCKBACK_RESISTANCE = 0.8F;
@@ -66,7 +90,7 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
     private static final int ATTACK_DAMAGE = 15;
 
     private static final EntityDataAccessor<Integer> CLIENT_ANGER_LEVEL = SynchedEntityData.defineId(Warden.class, EntityDataSerializers.INT);
-    private static final int ANGERMANAGEMENT_TICK_DELAY = 20;
+    private static final int ANGER_MANAGEMENT_TICK_DELAY = 20;
     private static final int DEFAULT_ANGER = 35;
     private static final int PROJECTILE_ANGER = 10;
     private static final int ON_HURT_ANGER_BOOST = 20;
@@ -74,15 +98,18 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
     private static final int TOUCH_COOLDOWN_TICKS = 20;
     private static final int PROJECTILE_ANGER_DISTANCE = 30;
 
-
     public static final int HORDEN_SPAWN_REQUIREMENT = 10;
     public static int SPAWN_COUNT = 0;
     public static int ALIVE_COUNT = 0;
 
-    public net.minecraft.world.entity.AnimationState roarAnimationState = new net.minecraft.world.entity.AnimationState();
-    public net.minecraft.world.entity.AnimationState attackAnimationState = new net.minecraft.world.entity.AnimationState();
+    private int tendrilAnimation;
+    private int tendrilAnimationO;
+
+    public AnimationState roarAnimationState = new AnimationState();
+    public AnimationState attackAnimationState = new AnimationState();
+    public AnimationState smashAnimationState = new AnimationState();
     private final DynamicGameEventListener<VibrationListener> dynamicGameEventListener;
-    //private AngerManagement angerManagement = new AngerManagement(this::canTargetEntity, Collections.emptyList());
+    private AngerManagement angerManagement = new AngerManagement(this::canTargetEntity, Collections.emptyList());
 
     public HunterEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -127,7 +154,7 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
     }
 
     @Override
-    protected boolean canRide(Entity pVehicle) {
+    protected boolean canRide(@NotNull Entity pVehicle) {
         return false;
     }
 
@@ -152,12 +179,198 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
         this.entityData.define(CLIENT_ANGER_LEVEL, 0);
     }
 
+    @Contract("null->false")
+    public boolean canTargetEntity(@Nullable Entity entity) {
+        return  entity instanceof LivingEntity livingentity &&
+                this.level == entity.level &&
+                EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(entity) &&
+                !this.isAlliedTo(entity) &&
+                livingentity.getType() != EntityType.ARMOR_STAND &&
+                livingentity.getType() != ModEntityTypes.HUNTER.get() &&
+                !livingentity.isInvulnerable() &&
+                !livingentity.isDeadOrDying() &&
+                this.level.getWorldBorder().isWithinBounds(livingentity.getBoundingBox());
+    }
+
+    public void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
+        super.addAdditionalSaveData(pCompound);
+        AngerManagement.codec(this::canTargetEntity)
+                .encodeStart(NbtOps.INSTANCE, this.angerManagement)
+                .resultOrPartial(LOGGER::error)
+                .ifPresent((tag) -> pCompound.put("anger", tag));
+
+        VibrationListener.codec(this)
+                .encodeStart(NbtOps.INSTANCE, this.dynamicGameEventListener.getListener())
+                .resultOrPartial(LOGGER::error)
+                .ifPresent((tag) -> pCompound.put("listener", tag));
+    }
+    public void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        if (pCompound.contains("anger")) {
+            AngerManagement.codec(this::canTargetEntity)
+                    .parse(new Dynamic<>(NbtOps.INSTANCE, pCompound.get("anger")))
+                    .resultOrPartial(LOGGER::error)
+                    .ifPresent((angerManagement) -> this.angerManagement = angerManagement);
+            this.syncClientAngerLevel();
+        }
+
+        if (pCompound.contains("listener", 10)) {
+            VibrationListener.codec(this)
+                    .parse(new Dynamic<>(NbtOps.INSTANCE, pCompound.getCompound("listener")))
+                    .resultOrPartial(LOGGER::error)
+                    .ifPresent((vibrationListener) -> this.dynamicGameEventListener.updateListener(vibrationListener, this.level));
+        }
+
+    }
+
     public int getClientAngerLevel() {
         return this.entityData.get(CLIENT_ANGER_LEVEL);
     }
-    //private void syncClientAngerLevel() {
-    //    this.entityData.set(CLIENT_ANGER_LEVEL, this.getActiveAnger());
-    //}
+    private void syncClientAngerLevel() {
+        this.entityData.set(CLIENT_ANGER_LEVEL, this.getActiveAnger());
+    }
+    private int getActiveAnger() {
+        return this.angerManagement.getActiveAnger(this.getTarget());
+    }
+
+    public AngerLevel getAngerLevel() {
+        return AngerLevel.byAnger(this.getActiveAnger());
+    }
+
+    public void clearAnger(Entity pEntity) {
+        this.angerManagement.clearAnger(pEntity);
+    }
+
+    public void increaseAngerAt(@Nullable Entity pEntity) {
+        this.increaseAngerAt(pEntity, 35, true);
+    }
+
+    @VisibleForTesting
+    public void increaseAngerAt(@Nullable Entity pEntity, int pOffset, boolean pPlayListeningSound) {
+        if (!this.isNoAi() && this.canTargetEntity(pEntity)) {
+            //WardenAi.setDigCooldown(this);
+            boolean flag = !(this.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).orElse((LivingEntity)null) instanceof Player);
+            int i = this.angerManagement.increaseAnger(pEntity, pOffset);
+            if (pEntity instanceof Player && flag && AngerLevel.byAnger(i).isAngry()) {
+                this.getBrain().eraseMemory(MemoryModuleType.ATTACK_TARGET);
+            }
+
+            if (pPlayListeningSound) {
+                this.playListeningSound();
+            }
+        }
+    }
+
+    public boolean hurt(DamageSource pSource, float pAmount) {
+        boolean flag = super.hurt(pSource, pAmount);
+        if (!this.level.isClientSide && !this.isNoAi()) {
+            Entity entity = pSource.getEntity();
+            this.increaseAngerAt(entity, AngerLevel.ANGRY.getMinimumAnger() + 20, false);
+            if (this.brain.getMemory(MemoryModuleType.ATTACK_TARGET).isEmpty() && entity instanceof LivingEntity) {
+                LivingEntity livingEntity = (LivingEntity)entity;
+                if (!(pSource instanceof IndirectEntityDamageSource) || this.closerThan(livingEntity, 5.0D)) {
+                    this.setAttackTarget(livingEntity);
+                }
+            }
+        }
+
+        return flag;
+    }
+
+    public void setAttackTarget(LivingEntity pAttackTarget) {
+        this.getBrain().eraseMemory(MemoryModuleType.ROAR_TARGET);
+        StartAttacking.setAttackTarget(this, pAttackTarget);
+        //SonicBoom.setCooldown(this, 200);
+    }
+
+    protected void doPush(Entity pEntity) {
+        if (!this.isNoAi() && !this.getBrain().hasMemoryValue(MemoryModuleType.TOUCH_COOLDOWN)) {
+            this.getBrain().setMemoryWithExpiry(MemoryModuleType.TOUCH_COOLDOWN, Unit.INSTANCE, 20L);
+            this.increaseAngerAt(pEntity);
+            // WardenAi.setDisturbanceLocation(this, pEntity.blockPosition());
+        }
+        super.doPush(pEntity);
+    }
+
+    public boolean shouldListen(ServerLevel pLevel, GameEventListener pListener, BlockPos pPos, GameEvent pGameEvent, GameEvent.Context pContext) {
+        if (!this.isNoAi() && !this.isDeadOrDying() && !this.getBrain().hasMemoryValue(MemoryModuleType.VIBRATION_COOLDOWN) && pLevel.getWorldBorder().isWithinBounds(pPos) && !this.isRemoved() && this.level == pLevel) {
+            Entity entity = pContext.sourceEntity();
+            if (entity instanceof LivingEntity livingEntity) {
+                if (!this.canTargetEntity(livingEntity)) {
+                    return false;
+                }
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public void onSignalReceive(ServerLevel pLevel, GameEventListener pListener, BlockPos pSourcePos, GameEvent pGameEvent, @Nullable Entity pSourceEntity, @Nullable Entity pProjectileOwner, float pDistance) {
+        if (!this.isDeadOrDying()) {
+            this.brain.setMemoryWithExpiry(MemoryModuleType.VIBRATION_COOLDOWN, Unit.INSTANCE, 40L);
+            pLevel.broadcastEntityEvent(this, (byte)61);
+            this.playSound(SoundEvents.WARDEN_TENDRIL_CLICKS, 5.0F, this.getVoicePitch());
+            BlockPos blockpos = pSourcePos;
+            if (pProjectileOwner != null) {
+                if (this.closerThan(pProjectileOwner, 30.0D)) {
+                    if (this.getBrain().hasMemoryValue(MemoryModuleType.RECENT_PROJECTILE)) {
+                        if (this.canTargetEntity(pProjectileOwner)) {
+                            blockpos = pProjectileOwner.blockPosition();
+                        }
+
+                        this.increaseAngerAt(pProjectileOwner);
+                    } else {
+                        this.increaseAngerAt(pProjectileOwner, 10, true);
+                    }
+                }
+
+                this.getBrain().setMemoryWithExpiry(MemoryModuleType.RECENT_PROJECTILE, Unit.INSTANCE, 100L);
+            } else {
+                this.increaseAngerAt(pSourceEntity);
+            }
+
+            if (!this.getAngerLevel().isAngry()) {
+                Optional<LivingEntity> optional = this.angerManagement.getActiveEntity();
+                if (pProjectileOwner != null || optional.isEmpty() || optional.get() == pSourceEntity) {
+                    //WardenAi.setDisturbanceLocation(this, blockpos);
+                }
+            }
+
+        }
+    }
+
+    @VisibleForTesting
+    public AngerManagement getAngerManagement() {
+        return this.angerManagement;
+    }
+
+    protected PathNavigation createNavigation(Level pLevel) {
+        return new GroundPathNavigation(this, pLevel) {
+            protected PathFinder createPathFinder(int p_219479_) {
+                this.nodeEvaluator = new WalkNodeEvaluator();
+                this.nodeEvaluator.setCanPassDoors(true);
+                return new PathFinder(this.nodeEvaluator, p_219479_) {
+                    protected float distance(Node p_219486_, Node p_219487_) {
+                        return p_219486_.distanceToXZ(p_219487_);
+                    }
+                };
+            }
+        };
+    }
+
+    public Optional<LivingEntity> getEntityAngryAt() {
+        return this.getAngerLevel().isAngry() ? this.angerManagement.getActiveEntity() : Optional.empty();
+    }
+
+    /**
+     * Gets the active target the Goal system uses for tracking
+     */
+    @Nullable
+    public LivingEntity getTarget() {
+        return this.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).orElse((LivingEntity)null);
+    }
 
     //protected void customServerAiStep() {
     //    ServerLevel serverlevel = (ServerLevel)this.level;
@@ -183,7 +396,7 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
     }
 
     @Override
-    public TagKey<GameEvent> getListenableEvents() {
+    public @NotNull TagKey<GameEvent> getListenableEvents() {
         return GameEventTags.WARDEN_CAN_LISTEN;
     }
 
@@ -223,8 +436,8 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
     public boolean customAddEffect(MobEffectInstance pEffectInstance, @Nullable Entity pEntity) {
         return  !(pEffectInstance.getEffect().isBeneficial() &&
                 (!(pEntity instanceof HunterEntity ||
-                (pEntity instanceof AreaEffectCloud aoeCloud &&
-                aoeCloud.getOwner() instanceof Infected))));
+                        (pEntity instanceof AreaEffectCloud aoeCloud &&
+                                aoeCloud.getOwner() instanceof Infected))));
     }
 
     @Override
@@ -250,6 +463,11 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
         this.playSound(ModSounds.HUNTER_STEP.get());
         super.playStepSound(blockPos, blockState);
     }
+    private void playListeningSound() {
+        if (!this.hasPose(Pose.ROARING)) {
+            this.playSound(this.getAngerLevel().getListeningSound(), 10.0F, this.getVoicePitch());
+        }
+    }
     @Override
     protected SoundEvent getHurtSound(DamageSource damageSource) {
         return ModSounds.HUNTER_HURT.get();
@@ -257,16 +475,6 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
     @Override
     protected SoundEvent getDeathSound() {
         return ModSounds.HUNTER_DEATH.get();
-    }
-
-    @Override
-    public boolean shouldListen(ServerLevel pLevel, GameEventListener pListener, BlockPos pPos, GameEvent pGameEvent, GameEvent.Context pContext) {
-        return false;
-    }
-
-    @Override
-    public void onSignalReceive(ServerLevel pLevel, GameEventListener pListener, BlockPos pSourcePos, GameEvent pGameEvent, @Nullable Entity pSourceEntity, @Nullable Entity pProjectileOwner, float pDistance) {
-
     }
 
     @Override
