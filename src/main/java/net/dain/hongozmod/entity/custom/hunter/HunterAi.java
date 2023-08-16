@@ -1,11 +1,11 @@
 package net.dain.hongozmod.entity.custom.hunter;
-
+/*
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.Dynamic;
-import net.dain.hongozmod.ai.ModSensorType;
+//import net.dain.hongozmod.ai.ModSensorType;
 import net.dain.hongozmod.entity.templates.Infected;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -15,15 +15,15 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.*;
-import net.minecraft.world.entity.ai.behavior.HunterEntity.*;
+//import net.minecraft.world.entity.ai.behavior.HunterEntity.*;
 import net.minecraft.world.entity.ai.behavior.warden.SetRoarTarget;
 import net.minecraft.world.entity.ai.behavior.warden.TryToSniff;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 import net.minecraft.world.entity.ai.sensing.SensorType;
-import net.minecraft.world.entity.monster.HunterEntity.HunterEntity;
-import net.minecraft.world.entity.monster.HunterEntity.HunterEntityAi;
+//import net.minecraft.world.entity.monster.HunterEntity.HunterEntity;
+//import net.minecraft.world.entity.monster.HunterEntity.HunterEntityAi;
 import net.minecraft.world.entity.schedule.Activity;
 
 import java.util.List;
@@ -118,3 +118,4 @@ public class HunterAi {
         }
     }
 }
+*/
