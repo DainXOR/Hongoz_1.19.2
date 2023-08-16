@@ -62,7 +62,7 @@ public class HonziadeEntity extends Infected implements IAnimatable{
     public static AttributeSupplier setAttributes(){
         return Monster.createMonsterAttributes()
                 .add(Attributes.MAX_HEALTH, 15.00)
-                .add(Attributes.ATTACK_DAMAGE, 0.75)
+                .add(Attributes.ATTACK_DAMAGE, 1.00)
                 .add(Attributes.ATTACK_SPEED, 2.00)
                 .add(Attributes.MOVEMENT_SPEED, 0.40)
                 .add(Attributes.FOLLOW_RANGE, 128.00)
@@ -77,11 +77,11 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
 
         this.targetSelector.addGoal(0, (new HurtByTargetGoal(this)).setAlertOthers());
-        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, false));
-        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Warden.class, false));
-        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, IronGolem.class, false));
-        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, false));
-        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Animal.class, false));
+        this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true));
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Warden.class, true));
+        this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, IronGolem.class, true));
+        this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, true));
+        this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Animal.class, true));
         this.targetSelector.addGoal(10, new ResetUniversalAngerTargetGoal<>(this, true));
 
     }
@@ -319,11 +319,11 @@ public class HonziadeEntity extends Infected implements IAnimatable{
             this.goalSelector.addGoal(5, new RandomLookAroundGoal(this));
 
             this.targetSelector.addGoal(0, (new HurtByTargetGoal(this)).setAlertOthers());
-            this.targetSelector.addGoal(1, new AvoidEntityGoal<>(this, Warden.class, 32.0f, 1.3f, 1.5f));
-            this.targetSelector.addGoal(2, new AvoidEntityGoal<>(this, AbstractGolem.class, 32.0f, 1.3f, 1.5f));
-            this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, false));
-            this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, false));
-            this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Animal.class, false));
+            this.targetSelector.addGoal(1, new AvoidEntityGoal<>(this, Warden.class, 64.0f, 1.3f, 1.5f));
+            this.targetSelector.addGoal(2, new AvoidEntityGoal<>(this, AbstractGolem.class, 64.0f, 1.3f, 1.5f));
+            this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(this, Player.class, true));
+            this.targetSelector.addGoal(4, new NearestAttackableTargetGoal<>(this, AbstractVillager.class, true));
+            this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Animal.class, true));
             this.targetSelector.addGoal(10, new ResetUniversalAngerTargetGoal<>(this, true));
         }
 
