@@ -96,4 +96,9 @@ public class FungiEgg extends Infected {
     public String getEntityName(){
         return "fungi_egg";
     }
+
+    public float getShadowRadius() {
+        return 0.4f;
+    }
+
 }
