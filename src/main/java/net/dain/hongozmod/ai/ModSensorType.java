@@ -7,7 +7,7 @@ import net.minecraft.world.entity.ai.sensing.Sensing;
 import net.minecraft.world.entity.ai.sensing.Sensor;
 
 import java.util.function.Supplier;
-
+/*
 public class ModSensorType<U extends Sensor<?>> {
 
     public static final ModSensorType<HunterEntitySensor> HUNTER_ENTITY_SENSOR = register("hunter_entity_sensor", HunterEntitySensor::new);
@@ -27,3 +27,4 @@ public class ModSensorType<U extends Sensor<?>> {
         return Registry.register(Registry.SENSOR_TYPE_REGISTRY, new ResourceLocation(pKey), new ModSensorType(pSensorSupplier));
     }
 }
+*/

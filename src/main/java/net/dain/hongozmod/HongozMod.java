@@ -10,6 +10,7 @@ import net.dain.hongozmod.sound.ModSounds;
 import net.dain.hongozmod.world.feature.ModConfiguredFeatures;
 import net.dain.hongozmod.world.feature.ModPlacedFeatures;
 import net.minecraft.client.renderer.entity.EntityRenderers;
+import net.minecraft.client.renderer.entity.WardenRenderer;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -86,6 +87,7 @@ public class HongozMod {
             EntityRenderers.register(ModEntityTypes.CROAKTAR.get(), InfectedRenderer::new);
             EntityRenderers.register(ModEntityTypes.HONZIADE.get(), InfectedRenderer::new);
             EntityRenderers.register(ModEntityTypes.HUNTER.get(), InfectedRenderer::new);
+            EntityRenderers.register(ModEntityTypes.HUNTER_TEST.get(), WardenRenderer::new);
 
             EntityRenderers.register(ModEntityTypes.EVO_CROAKTAR.get(), InfectedRenderer::new);
             EntityRenderers.register(ModEntityTypes.HONZIADE_QUEEN.get(), InfectedRenderer::new);

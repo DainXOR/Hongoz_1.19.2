@@ -9,7 +9,7 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
-
+/*
 public class ModMemoryModuleType<U>  {
     private final Optional<Codec<ExpirableValue<U>>> codec;
 
@@ -36,3 +36,4 @@ public class ModMemoryModuleType<U>  {
         return Registry.register(Registry.MEMORY_MODULE_TYPE, new ResourceLocation(pIdentifier), new ModMemoryModuleType<>(Optional.empty()));
     }
 }
+*/

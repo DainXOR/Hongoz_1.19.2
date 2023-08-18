@@ -3,6 +3,7 @@ package net.dain.hongozmod.entity;
 import net.dain.hongozmod.HongozMod;
 import net.dain.hongozmod.entity.custom.*;
 import net.dain.hongozmod.entity.custom.hunter.HunterEntity;
+import net.dain.hongozmod.entity.custom.hunter.HunterTest;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -55,6 +56,11 @@ public class ModEntityTypes {
 
     public static final RegistryObject<EntityType<HunterEntity>> HUNTER =
             ENTITY_TYPES.register("hunter", () -> EntityType.Builder.of(HunterEntity::new, MobCategory.MONSTER)
+                    .sized(1.6f, 3.0f)
+                    .build(new ResourceLocation(HongozMod.MOD_ID, "hunter").toString()));
+
+    public static final RegistryObject<EntityType<HunterTest>> HUNTER_TEST =
+            ENTITY_TYPES.register("hunter_test", () -> EntityType.Builder.of(HunterTest::new, MobCategory.MONSTER)
                     .sized(1.6f, 3.0f)
                     .build(new ResourceLocation(HongozMod.MOD_ID, "hunter").toString()));
 

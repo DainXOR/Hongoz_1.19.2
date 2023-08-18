@@ -28,23 +28,13 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.StartAttacking;
-import net.minecraft.world.entity.ai.behavior.warden.SonicBoom;
-import net.minecraft.world.entity.ai.goal.*;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.ResetUniversalAngerTargetGoal;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.entity.animal.AbstractGolem;
-import net.minecraft.world.entity.animal.Animal;
-import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.warden.AngerLevel;
 import net.minecraft.world.entity.monster.warden.AngerManagement;
 import net.minecraft.world.entity.monster.warden.Warden;
-import net.minecraft.world.entity.monster.warden.WardenAi;
-import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -66,8 +56,6 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
-import software.bernie.geckolib3.core.builder.AnimationBuilder;
-import software.bernie.geckolib3.core.builder.ILoopType;
 import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
 
 import java.time.LocalDate;
@@ -248,7 +236,6 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
     @VisibleForTesting
     public void increaseAngerAt(@Nullable Entity pEntity, int pOffset, boolean pPlayListeningSound) {
         if (!this.isNoAi() && this.canTargetEntity(pEntity)) {
-            //WardenAi.setDigCooldown(this);
             boolean flag = !(this.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).orElse((LivingEntity)null) instanceof Player);
             int i = this.angerManagement.increaseAnger(pEntity, pOffset);
             if (pEntity instanceof Player && flag && AngerLevel.byAnger(i).isAngry()) {
@@ -334,7 +321,7 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
             if (!this.getAngerLevel().isAngry()) {
                 Optional<LivingEntity> optional = this.angerManagement.getActiveEntity();
                 if (pProjectileOwner != null || optional.isEmpty() || optional.get() == pSourceEntity) {
-                    //WardenAi.setDisturbanceLocation(this, blockpos);
+                    //HunterAi.setDisturbanceLocation(this, blockpos);
                 }
             }
 
@@ -346,14 +333,14 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
         return this.angerManagement;
     }
 
-    protected PathNavigation createNavigation(Level pLevel) {
+    protected @NotNull PathNavigation createNavigation(@NotNull Level pLevel) {
         return new GroundPathNavigation(this, pLevel) {
-            protected PathFinder createPathFinder(int p_219479_) {
+            protected @NotNull PathFinder createPathFinder(int pMaxVisitedNodes) {
                 this.nodeEvaluator = new WalkNodeEvaluator();
                 this.nodeEvaluator.setCanPassDoors(true);
-                return new PathFinder(this.nodeEvaluator, p_219479_) {
-                    protected float distance(Node p_219486_, Node p_219487_) {
-                        return p_219486_.distanceToXZ(p_219487_);
+                return new PathFinder(this.nodeEvaluator, pMaxVisitedNodes) {
+                    protected float distance(@NotNull Node pFirst, @NotNull Node pSecond) {
+                        return pFirst.distanceToXZ(pSecond);
                     }
                 };
             }
@@ -408,6 +395,7 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
     /**
      * Warden doesn't have goals
      */
+    /*
     @Override
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
@@ -424,8 +412,9 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
         this.targetSelector.addGoal(5, new NearestAttackableTargetGoal<>(this, Monster.class, false));
         this.targetSelector.addGoal(6, new NearestAttackableTargetGoal<>(this, Animal.class, false));
         this.targetSelector.addGoal(10, new ResetUniversalAngerTargetGoal<>(this, true));
-
     }
+    */
+
 
     @Override
     public boolean recibeDamageFrom(Entity pEntity) {
@@ -459,7 +448,7 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
         return this.hasPose(ROARING)? ModSounds.HUNTER_AGGRESIVE.get() : ModSounds.HUNTER_AMBIENT.get();
     }
     @Override
-    protected void playStepSound(BlockPos blockPos, BlockState blockState) {
+    protected void playStepSound(@NotNull BlockPos blockPos, @NotNull BlockState blockState) {
         this.playSound(ModSounds.HUNTER_STEP.get());
         super.playStepSound(blockPos, blockState);
     }
@@ -469,7 +458,7 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
         }
     }
     @Override
-    protected SoundEvent getHurtSound(DamageSource damageSource) {
+    protected SoundEvent getHurtSound(@NotNull DamageSource damageSource) {
         return ModSounds.HUNTER_HURT.get();
     }
     @Override
@@ -478,7 +467,7 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
     }
 
     @Override
-    public boolean checkSpawnRules(LevelAccessor pLevel, MobSpawnType pSpawnReason) {
+    public boolean checkSpawnRules(@NotNull LevelAccessor pLevel, MobSpawnType pSpawnReason) {
         boolean minHordenSpawnsReached = HordenEntity.SPAWN_COUNT > 0 && HordenEntity.SPAWN_COUNT % HORDEN_SPAWN_REQUIREMENT == 0;
         boolean spawnReasons = pSpawnReason.equals(MobSpawnType.NATURAL) || pSpawnReason.equals(MobSpawnType.MOB_SUMMONED);
         boolean isCappedSpawn = spawnReasons && minHordenSpawnsReached;
