@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "net.dain.${mod_id}" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-version = "${mc_version}-${mod_version}" //'1.19.2-0.0.25'
+version = "${mc_version}-${mod_version}"
 archivesBaseName = "${mod_id}"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
@@ -15,10 +15,10 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 
 processResources {
-    inputs.property("mod_version", mod_version)
+    inputs.properties("mod_id": mod_id, "mod_version": mod_version, "mod_logo": mod_logo)
 
     filesMatching("**/mods.toml"){
-        expand "mod_version": mod_version
+        expand("mod_id": mod_id, "mod_version": mod_version, "mod_logo": mod_logo)
     }
 }
 

@@ -5,11 +5,11 @@ license="MIT License"
 issueTrackerURL="https://github.com/DainXOR/Hongoz_1.19.2/issues"
 
 [[mods]]
-    modId="hongoz"
+    modId="${mod_id}"
     version="${mod_version}"
     displayName="Hongoz"
     displayURL="https://legacy.curseforge.com/minecraft/mc-mods/hongoz"
-    logoFile="hongoz-hunter_logo.png"
+    logoFile="${mod_logo}.png"
     credits="Hmmm..."
     authors="Dain, SammJA"
     description='''A mod that adds new enemies to your world in an apocalyptic fungi infection.'''
