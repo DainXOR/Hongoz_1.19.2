@@ -36,6 +36,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jline.utils.Log;
 import oshi.util.tuples.Pair;
 import software.bernie.geckolib3.core.IAnimatable;
@@ -51,6 +52,8 @@ public class HonziadeEntity extends Infected implements IAnimatable{
 
     public static final int TICKS_TO_AGE = 1200;
     public static final int SUITABLE_AGE = 5;
+
+    private HonziadeEntity.Queen parent = null;
     public int AGE_TICKS = 0;
     public int age = 0;
 
@@ -86,6 +89,11 @@ public class HonziadeEntity extends Infected implements IAnimatable{
 
     }
 
+    public void setParent(@NotNull HonziadeEntity.Queen newParent){
+        this.parent = newParent;
+    }
+    public @Nullable HonziadeEntity.Queen getParent(){ return this.parent; }
+
     public Class<? extends Infected> getAngryAlertType() {
         return HonziadeEntity.class;
     }
@@ -117,11 +125,11 @@ public class HonziadeEntity extends Infected implements IAnimatable{
     public boolean causeFallDamage(float pFallDistance, float pMultiplier, DamageSource pSource) {
         return false;
     }
-    protected boolean canAddPassenger(Entity pPassenger) {
+    protected boolean canAddPassenger(@NotNull Entity pPassenger) {
         return false;
     }
 
-    protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
+    protected float getStandingEyeHeight(@NotNull Pose pPose, @NotNull EntityDimensions pSize) {
         return 0.4F;
     }
 
@@ -256,17 +264,17 @@ public class HonziadeEntity extends Infected implements IAnimatable{
     }
 
     @Override
-    public boolean doHurtTarget(Entity pEntity) {
+    public boolean doHurtTarget(@NotNull Entity pEntity) {
         if(pEntity instanceof LivingEntity entity){
             this.setTarget(entity);
         }
         return super.doHurtTarget(pEntity);
     }
 
-    protected void playStepSound(BlockPos blockPos, BlockState blockState) {
+    protected void playStepSound(@NotNull BlockPos blockPos, @NotNull BlockState blockState) {
         this.playSound(SoundEvents.SPIDER_STEP, 1.0F, 1.5F);
     }
-    protected SoundEvent getHurtSound(DamageSource damageSource) {
+    protected SoundEvent getHurtSound(@NotNull DamageSource damageSource) {
         this.playSound(SoundEvents.GHAST_HURT, 0.4F, 7.0F);
         this.playSound(SoundEvents.CREEPER_HURT, 0.5F, .75F);
         this.playSound(SoundEvents.SPIDER_HURT, 1.0F, 2.0F);
@@ -383,7 +391,7 @@ public class HonziadeEntity extends Infected implements IAnimatable{
             return false;
         }
 
-        protected float getStandingEyeHeight(Pose pPose, EntityDimensions pSize) {
+        protected float getStandingEyeHeight(@NotNull Pose pPose, @NotNull EntityDimensions pSize) {
             return 1.0F;
         }
 
@@ -396,13 +404,13 @@ public class HonziadeEntity extends Infected implements IAnimatable{
             super.onRemovedFromWorld();
         }
 
-        protected void playStepSound(BlockPos blockPos, BlockState blockState) {
+        protected void playStepSound(@NotNull BlockPos blockPos, @NotNull BlockState blockState) {
             this.playSound(SoundEvents.SPIDER_STEP, 3.0F, 0.2F);
         }
         protected SoundEvent getAmbientSound() {
             return ModSounds.HONZIADE_AMBIENT.get();
         }
-        protected SoundEvent getHurtSound(DamageSource damageSource) {
+        protected SoundEvent getHurtSound(@NotNull DamageSource damageSource) {
             this.playSound(SoundEvents.GHAST_HURT, 0.8F, 2.0F);
             this.playSound(SoundEvents.CREEPER_HURT, 1.8F, .75F);
             this.playSound(SoundEvents.SPIDER_HURT, 2.0F, 0.8F);
