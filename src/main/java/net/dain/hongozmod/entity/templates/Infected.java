@@ -11,6 +11,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.ResetUniversalAngerTargetGoal;
 import net.minecraft.world.entity.monster.Monster;
@@ -128,8 +129,14 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
     public Class<? extends Infected> getAvoidAlertType(){
         return null;
     }
-    public int getAlertRange(){
-        return 128;
+    public double getAlertRange(){
+        return (int) this.getAttributeValue(Attributes.FOLLOW_RANGE);
+    }
+    protected int getAlertTicks(){
+        return ALERT_INTERVAL.sample(this.random);
+    }
+    public boolean customAlertFilter(Entity entity){
+        return true;
     }
 
     protected final void maybeAlertOthers() {
@@ -144,18 +151,19 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
             } else if (this.getTarget() == null) {
                 triedAlertAllies = false;
             }
-            this.ticksUntilNextAlert = ALERT_INTERVAL.sample(this.random);
+            this.ticksUntilNextAlert = this.getAlertTicks();
         }
     }
-    protected final void alertOthers() {
+    protected void alertOthers() {
         if (this.getTarget() == null){
             return;
         }
 
-        double d0 = this.getAlertRange(); // this.getAttributeValue(Attributes.FOLLOW_RANGE);
-        AABB aabb = AABB.unitCubeFromLowerCorner(this.position()).inflate(d0, 10.0D, d0);
+        double len = this.getAlertRange();
+        AABB aabb = AABB.unitCubeFromLowerCorner(this.position()).inflate(len, len, len);
         this.level.getEntitiesOfClass(this.getAngryAlertType(), aabb, EntitySelector.NO_SPECTATORS).stream()
                 .filter((entity) -> entity != this)
+                .filter(this::customAlertFilter)
                 .filter((entity) -> entity.getClass() != this.getAvoidAlertType())
                 .filter((entity) -> entity.getTarget() == null)
                 .filter((entity) -> !entity.isAlliedTo(this.getTarget()))
