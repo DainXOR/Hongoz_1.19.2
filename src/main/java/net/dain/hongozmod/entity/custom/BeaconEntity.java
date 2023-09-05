@@ -140,6 +140,7 @@ public class BeaconEntity extends Infected {
     }
     public void regenerate(){
         this.heal(REGENERATION_AMOUNT);
+        net.minecraftforge.event.ForgeEventFactory.onLivingHeal(this, REGENERATION_AMOUNT);
         this.sendPacket((byte) 61);
     }
     public void tryRegenerate(){
