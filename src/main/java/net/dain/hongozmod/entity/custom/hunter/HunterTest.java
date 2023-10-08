@@ -59,15 +59,18 @@ import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 
 public class HunterTest extends Warden {
     private static final Logger LOGGER = LogUtils.getLogger();
+
     private static final int GAME_EVENT_LISTENER_RANGE = 16;
     private static final int VIBRATION_COOLDOWN_TICKS = 40;
     private static final int TIME_TO_USE_MELEE_UNTIL_SONIC_BOOM = 200;
@@ -76,20 +79,14 @@ public class HunterTest extends Warden {
     private static final float KNOCKBACK_RESISTANCE = 1.0F;
     private static final float ATTACK_KNOCKBACK = 1.5F;
     private static final int ATTACK_DAMAGE = 30;
+
     private static final EntityDataAccessor<Integer> CLIENT_ANGER_LEVEL = SynchedEntityData.defineId(HunterTest.class, EntityDataSerializers.INT);
-    private static final int DARKNESS_DISPLAY_LIMIT = 200;
-    private static final int DARKNESS_DURATION = 260;
-    private static final int DARKNESS_RADIUS = 20;
-    private static final int DARKNESS_INTERVAL = 120;
     private static final int ANGERMANAGEMENT_TICK_DELAY = 20;
     private static final int DEFAULT_ANGER = 35;
     private static final int PROJECTILE_ANGER = 10;
     private static final int ON_HURT_ANGER_BOOST = 20;
     private static final int RECENT_PROJECTILE_TICK_THRESHOLD = 100;
     private static final int TOUCH_COOLDOWN_TICKS = 20;
-    private static final int DIGGING_PARTICLES_AMOUNT = 30;
-    private static final float DIGGING_PARTICLES_DURATION = 4.5F;
-    private static final float DIGGING_PARTICLES_OFFSET = 0.7F;
     private static final int PROJECTILE_ANGER_DISTANCE = 30;
     private int tendrilAnimation;
     private int tendrilAnimationO;
@@ -97,10 +94,11 @@ public class HunterTest extends Warden {
     private int heartAnimationO;
     public AnimationState roarAnimationState = new AnimationState();
     public AnimationState sniffAnimationState = new AnimationState();
-    public AnimationState emergeAnimationState = new AnimationState();
-    public AnimationState diggingAnimationState = new AnimationState();
     public AnimationState attackAnimationState = new AnimationState();
-    public AnimationState sonicBoomAnimationState = new AnimationState();
+    public AnimationState jumpAnimationState = new AnimationState();
+    public AnimationState smashAnimationState = new AnimationState();
+    public AnimationState chargeAnimationState = new AnimationState();
+
     private final DynamicGameEventListener<VibrationListener> dynamicGameEventListener;
     private AngerManagement angerManagement = new AngerManagement(this::canTargetEntity, Collections.emptyList());
 
@@ -117,16 +115,8 @@ public class HunterTest extends Warden {
         this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 0.0F);
     }
 
-    public Packet<?> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket((LivingEntity)this, this.hasPose(Pose.EMERGING) ? 1 : 0);
-    }
-
     public void recreateFromPacket(ClientboundAddEntityPacket pPacket) {
         super.recreateFromPacket(pPacket);
-        if (pPacket.getData() == 1) {
-            this.setPose(Pose.EMERGING);
-        }
-
     }
 
     public boolean checkSpawnObstruction(LevelReader pLevel) {
@@ -141,14 +131,14 @@ public class HunterTest extends Warden {
      * Returns whether this Entity is invulnerable to the given DamageSource.
      */
     public boolean isInvulnerableTo(DamageSource pSource) {
-        return this.isDiggingOrEmerging() && !pSource.isBypassInvul() ? true : super.isInvulnerableTo(pSource);
+        return this.isDiggingOrEmerging() && !pSource.isBypassInvul() || super.isInvulnerableTo(pSource);
     }
 
     private boolean isDiggingOrEmerging() {
-        return this.hasPose(Pose.DIGGING) || this.hasPose(Pose.EMERGING);
+        return false;
     }
 
-    protected boolean canRide(Entity pVehicle) {
+    protected boolean canRide(@NotNull Entity pVehicle) {
         return false;
     }
 
@@ -183,7 +173,7 @@ public class HunterTest extends Warden {
 
     @Nullable
     protected SoundEvent getAmbientSound() {
-        return !this.hasPose(Pose.ROARING) && !this.isDiggingOrEmerging() ? this.getAngerLevel().getAmbientSound() : null;
+        return !this.hasPose(Pose.ROARING) ? this.getAngerLevel().getAmbientSound() : null;
     }
 
     protected SoundEvent getHurtSound(DamageSource pDamageSource) {
@@ -201,7 +191,6 @@ public class HunterTest extends Warden {
     public boolean doHurtTarget(Entity pEntity) {
         this.level.broadcastEntityEvent(this, (byte)4);
         this.playSound(SoundEvents.WARDEN_ATTACK_IMPACT, 10.0F, this.getVoicePitch());
-        SonicBoom.setCooldown(this, 40);
         return super.doHurtTarget(pEntity);
     }
 
@@ -225,9 +214,6 @@ public class HunterTest extends Warden {
         Level level = this.level;
         if (level instanceof ServerLevel serverlevel) {
             this.dynamicGameEventListener.getListener().tick(serverlevel);
-            if (this.isPersistenceRequired() || this.requiresCustomPersistence()) {
-                WardenAi.setDigCooldown(this);
-            }
         }
 
         super.tick();
@@ -248,34 +234,23 @@ public class HunterTest extends Warden {
             if (this.heartAnimation > 0) {
                 --this.heartAnimation;
             }
-
-            switch (this.getPose()) {
-                case EMERGING:
-                    this.clientDiggingParticles(this.emergeAnimationState);
-                    break;
-                case DIGGING:
-                    this.clientDiggingParticles(this.diggingAnimationState);
-            }
         }
 
     }
 
     protected void customServerAiStep() {
         ServerLevel serverlevel = (ServerLevel)this.level;
-        serverlevel.getProfiler().push("wardenBrain");
+        serverlevel.getProfiler().push("hunterBrain");
         this.getBrain().tick(serverlevel, this);
         this.level.getProfiler().pop();
         super.customServerAiStep();
-        if ((this.tickCount + this.getId()) % 120 == 0) {
-            applyDarknessAround(serverlevel, this.position(), this, 20);
-        }
 
         if (this.tickCount % 20 == 0) {
             this.angerManagement.tick(serverlevel, this::canTargetEntity);
             this.syncClientAngerLevel();
         }
 
-        WardenAi.updateActivity(this);
+        HunterAi.updateActivity(this);
     }
 
     /**
@@ -288,7 +263,7 @@ public class HunterTest extends Warden {
         } else if (pId == 61) {
             this.tendrilAnimation = 10;
         } else if (pId == 62) {
-            this.sonicBoomAnimationState.start(this.tickCount);
+            this.smashAnimationState.start(this.tickCount);
         } else {
             super.handleEntityEvent(pId);
         }
@@ -327,12 +302,8 @@ public class HunterTest extends Warden {
     public void onSyncedDataUpdated(EntityDataAccessor<?> pKey) {
         if (DATA_POSE.equals(pKey)) {
             switch (this.getPose()) {
-                case EMERGING:
-                    this.emergeAnimationState.start(this.tickCount);
-                    break;
-                case DIGGING:
-                    this.diggingAnimationState.start(this.tickCount);
-                    break;
+                case LONG_JUMPING:
+                    this.jumpAnimationState.start(this.tickCount);
                 case ROARING:
                     this.roarAnimationState.start(this.tickCount);
                     break;
@@ -369,7 +340,7 @@ public class HunterTest extends Warden {
 
     }
 
-    public TagKey<GameEvent> getListenableEvents() {
+    public @NotNull TagKey<GameEvent> getListenableEvents() {
         return GameEventTags.WARDEN_CAN_LISTEN;
     }
 
@@ -379,13 +350,16 @@ public class HunterTest extends Warden {
 
     @Contract("null->false")
     public boolean canTargetEntity(@Nullable Entity p_219386_) {
-        if (p_219386_ instanceof LivingEntity livingentity) {
-            if (this.level == p_219386_.level && EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(p_219386_) && !this.isAlliedTo(p_219386_) && livingentity.getType() != EntityType.ARMOR_STAND && livingentity.getType() != EntityType.WARDEN && !livingentity.isInvulnerable() && !livingentity.isDeadOrDying() && this.level.getWorldBorder().isWithinBounds(livingentity.getBoundingBox())) {
-                return true;
-            }
-        }
 
-        return false;
+            return p_219386_ instanceof LivingEntity livingentity &&
+                    this.level == p_219386_.level &&
+                    EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(p_219386_) &&
+                    !this.isAlliedTo(p_219386_) &&
+                    livingentity.getType() != EntityType.ARMOR_STAND &&
+                    livingentity.getType() != EntityType.WARDEN &&
+                    !livingentity.isInvulnerable() &&
+                    !livingentity.isDeadOrDying() &&
+                    this.level.getWorldBorder().isWithinBounds(livingentity.getBoundingBox());
     }
 
     public static void applyDarknessAround(ServerLevel pLevel, Vec3 pPos, @Nullable Entity pSource, int pRadius) {
@@ -449,7 +423,6 @@ public class HunterTest extends Warden {
     @VisibleForTesting
     public void increaseAngerAt(@Nullable Entity pEntity, int pOffset, boolean pPlayListeningSound) {
         if (!this.isNoAi() && this.canTargetEntity(pEntity)) {
-            WardenAi.setDigCooldown(this);
             boolean flag = !(this.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).orElse((LivingEntity)null) instanceof Player);
             int i = this.angerManagement.increaseAnger(pEntity, pOffset);
             if (pEntity instanceof Player && flag && AngerLevel.byAnger(i).isAngry()) {
@@ -481,11 +454,13 @@ public class HunterTest extends Warden {
 
     @Nullable
     public SpawnGroupData finalizeSpawn(ServerLevelAccessor pLevel, DifficultyInstance pDifficulty, MobSpawnType pReason, @Nullable SpawnGroupData pSpawnData, @Nullable CompoundTag pDataTag) {
-        this.getBrain().setMemoryWithExpiry(MemoryModuleType.DIG_COOLDOWN, Unit.INSTANCE, 1200L);
-        if (pReason == MobSpawnType.TRIGGERED) {
-            this.setPose(Pose.EMERGING);
-            this.getBrain().setMemoryWithExpiry(MemoryModuleType.IS_EMERGING, Unit.INSTANCE, (long)WardenAi.EMERGE_DURATION);
+        if (pReason == MobSpawnType.NATURAL) {
             this.playSound(SoundEvents.WARDEN_AGITATED, 5.0F, 1.0F);
+
+            List<? extends Player> playerList = this.getLevel().players();
+            for (Player player : playerList) {
+                player.playSound(SoundEvents.WARDEN_AGITATED, 5.0F, 1.0F);
+            }
         }
 
         return super.finalizeSpawn(pLevel, pDifficulty, pReason, pSpawnData, pDataTag);
@@ -581,7 +556,7 @@ public class HunterTest extends Warden {
             if (!this.getAngerLevel().isAngry()) {
                 Optional<LivingEntity> optional = this.angerManagement.getActiveEntity();
                 if (pProjectileOwner != null || optional.isEmpty() || optional.get() == pSourceEntity) {
-                    WardenAi.setDisturbanceLocation(this, blockpos);
+                    HunterAi.setDisturbanceLocation(this, blockpos);
                 }
             }
 

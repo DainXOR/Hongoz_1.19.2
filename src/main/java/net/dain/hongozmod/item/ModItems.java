@@ -43,7 +43,7 @@ public class ModItems {
                     new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
     public static final RegistryObject<Item> HUNTER_TEST_SPAWN_EGG = ITEMS.register("hunter_test_spawn_egg",
-            () -> new ForgeSpawnEggItem(ModEntityTypes.HUNTER, 0xffa8a8, 0xd6d6d6,
+            () -> new ForgeSpawnEggItem(ModEntityTypes.HUNTER_TEST, 0xc80000, 0x252525,
                     new Item.Properties().tab(CreativeModeTab.TAB_MISC)));
 
     public static final RegistryObject<Item> HONZIADE_QUEEN_SPAWN_EGG = ITEMS.register("honziade_queen_spawn_egg",

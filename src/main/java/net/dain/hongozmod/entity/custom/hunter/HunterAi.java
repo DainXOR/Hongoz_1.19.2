@@ -46,35 +46,24 @@ public class HunterAi {
     private static final float SPEED_MULTIPLIER_WHEN_INVESTIGATING = 0.7F;
     private static final float SPEED_MULTIPLIER_WHEN_FIGHTING = 1.2F;
     private static final int MELEE_ATTACK_COOLDOWN = 18;
-    private static final int DIGGING_DURATION = Mth.ceil(100.0F);
-    public static final int EMERGE_DURATION = Mth.ceil(133.59999F);
     public static final int ROAR_DURATION = Mth.ceil(84.0F);
-    private static final int SNIFFING_DURATION = Mth.ceil(83.2F);
     public static final int DIGGING_COOLDOWN = 1200;
     private static final int DISTURBANCE_LOCATION_EXPIRY_TIME = 100;
     private static final List<SensorType<? extends Sensor<? super HunterTest>>> SENSOR_TYPES = List.of(SensorType.NEAREST_PLAYERS, SensorType.WARDEN_ENTITY_SENSOR);
     private static final List<MemoryModuleType<?>> MEMORY_TYPES = List.of(MemoryModuleType.NEAREST_LIVING_ENTITIES, MemoryModuleType.NEAREST_VISIBLE_LIVING_ENTITIES, MemoryModuleType.NEAREST_VISIBLE_PLAYER, MemoryModuleType.NEAREST_VISIBLE_ATTACKABLE_PLAYER, MemoryModuleType.NEAREST_VISIBLE_NEMESIS, MemoryModuleType.LOOK_TARGET, MemoryModuleType.WALK_TARGET, MemoryModuleType.CANT_REACH_WALK_TARGET_SINCE, MemoryModuleType.PATH, MemoryModuleType.ATTACK_TARGET, MemoryModuleType.ATTACK_COOLING_DOWN, MemoryModuleType.NEAREST_ATTACKABLE, MemoryModuleType.ROAR_TARGET, MemoryModuleType.DISTURBANCE_LOCATION, MemoryModuleType.RECENT_PROJECTILE, MemoryModuleType.IS_SNIFFING, MemoryModuleType.IS_EMERGING, MemoryModuleType.ROAR_SOUND_DELAY, MemoryModuleType.DIG_COOLDOWN, MemoryModuleType.ROAR_SOUND_COOLDOWN, MemoryModuleType.SNIFF_COOLDOWN, MemoryModuleType.TOUCH_COOLDOWN, MemoryModuleType.VIBRATION_COOLDOWN, MemoryModuleType.SONIC_BOOM_COOLDOWN, MemoryModuleType.SONIC_BOOM_SOUND_COOLDOWN, MemoryModuleType.SONIC_BOOM_SOUND_DELAY);
-    private static final Behavior<HunterTest> DIG_COOLDOWN_SETTER = new Behavior<HunterTest>(ImmutableMap.of(MemoryModuleType.DIG_COOLDOWN, MemoryStatus.REGISTERED)) {
-        protected void start(ServerLevel p_219554_, HunterTest p_219555_, long p_219556_) {
-            HunterAi.setDigCooldown(p_219555_);
-        }
-    };
 
-    public static void updateActivity(HunterTest pWarden) {
-        pWarden.getBrain().setActiveActivityToFirstValid(ImmutableList.of(Activity.EMERGE, Activity.DIG, Activity.ROAR, Activity.FIGHT, Activity.INVESTIGATE, Activity.SNIFF, Activity.IDLE));
+    public static void updateActivity(HunterTest pHunter) {
+        pHunter.getBrain().setActiveActivityToFirstValid(ImmutableList.of(Activity.ROAR, Activity.FIGHT, Activity.INVESTIGATE, Activity.IDLE));
     }
 
-    protected static Brain<?> makeBrain(HunterTest pWarden, Dynamic<?> p_219522_) {
+    protected static Brain<?> makeBrain(HunterTest pHunter, Dynamic<?> dynamic) {
         Brain.Provider<HunterTest> provider = Brain.provider(MEMORY_TYPES, SENSOR_TYPES);
-        Brain<HunterTest> brain = provider.makeBrain(p_219522_);
+        Brain<HunterTest> brain = provider.makeBrain(dynamic);
         initCoreActivity(brain);
-        initEmergeActivity(brain);
-        initDiggingActivity(brain);
         initIdleActivity(brain);
         initRoarActivity(brain);
-        initFightActivity(pWarden, brain);
+        initFightActivity(pHunter, brain);
         initInvestigateActivity(brain);
-        initSniffingActivity(brain);
         brain.setCoreActivities(ImmutableSet.of(Activity.CORE));
         brain.setDefaultActivity(Activity.IDLE);
         brain.useDefaultActivity();
@@ -82,35 +71,38 @@ public class HunterAi {
     }
 
     private static void initCoreActivity(Brain<HunterTest> pBrain) {
-        pBrain.addActivity(Activity.CORE, 0, ImmutableList.of(new Swim(0.8F), new SetWardenLookTarget(), new LookAtTargetSink(45, 90), new MoveToTargetSink()));
+        pBrain.addActivity(
+                Activity.CORE, 0,
+                ImmutableList.of(
+                        new Swim(0.8F),
+                        new SetWardenLookTarget(),
+                        new LookAtTargetSink(45, 90),
+                        new MoveToTargetSink()));
     }
-
-    private static void initEmergeActivity(Brain<HunterTest> pBrain) {
-        pBrain.addActivityAndRemoveMemoryWhenStopped(Activity.EMERGE, 5, ImmutableList.of(new Emerging<>(EMERGE_DURATION)), MemoryModuleType.IS_EMERGING);
-    }
-
-    private static void initDiggingActivity(Brain<HunterTest> pBrain) {
-        pBrain.addActivityWithConditions(Activity.DIG, ImmutableList.of(Pair.of(0, new ForceUnmount()), Pair.of(1, new Digging<>(DIGGING_DURATION))), ImmutableSet.of(Pair.of(MemoryModuleType.ROAR_TARGET, MemoryStatus.VALUE_ABSENT), Pair.of(MemoryModuleType.DIG_COOLDOWN, MemoryStatus.VALUE_ABSENT)));
-    }
-
     private static void initIdleActivity(Brain<HunterTest> pBrain) {
-        pBrain.addActivity(Activity.IDLE, 10, ImmutableList.of(new SetRoarTarget<>(HunterTest::getEntityAngryAt), new TryToSniff(), new RunOne<>(ImmutableMap.of(MemoryModuleType.IS_SNIFFING, MemoryStatus.VALUE_ABSENT), ImmutableList.of(Pair.of(new RandomStroll(0.5F), 2), Pair.of(new DoNothing(30, 60), 1)))));
+        pBrain.addActivity(
+                Activity.IDLE, 10,
+                ImmutableList.of(
+                        new SetRoarTarget<>(HunterTest::getEntityAngryAt),
+                        new RunOne<>(
+                                ImmutableMap.of(),
+                                ImmutableList.of(
+                                        Pair.of(new RandomStroll(0.5F), 2),
+                                        Pair.of(new DoNothing(30, 60), 1))
+                        )
+                )
+        );
     }
 
     private static void initInvestigateActivity(Brain<HunterTest> pBrain) {
         pBrain.addActivityAndRemoveMemoryWhenStopped(Activity.INVESTIGATE, 5, ImmutableList.of(new SetRoarTarget<>(HunterTest::getEntityAngryAt), new GoToTargetLocation<>(MemoryModuleType.DISTURBANCE_LOCATION, 2, 0.7F)), MemoryModuleType.DISTURBANCE_LOCATION);
     }
-
-    private static void initSniffingActivity(Brain<HunterTest> pBrain) {
-        pBrain.addActivityAndRemoveMemoryWhenStopped(Activity.SNIFF, 5, ImmutableList.of(new SetRoarTarget<>(HunterTest::getEntityAngryAt), new Sniffing<>(SNIFFING_DURATION)), MemoryModuleType.IS_SNIFFING);
-    }
-
     private static void initRoarActivity(Brain<HunterTest> pBrain) {
         pBrain.addActivityAndRemoveMemoryWhenStopped(Activity.ROAR, 10, ImmutableList.of(new Roar()), MemoryModuleType.ROAR_TARGET);
     }
 
     private static void initFightActivity(HunterTest pWarden, Brain<HunterTest> pBrain) {
-        pBrain.addActivityAndRemoveMemoryWhenStopped(Activity.FIGHT, 10, ImmutableList.of(DIG_COOLDOWN_SETTER, new StopAttackingIfTargetInvalid<>((p_219540_) -> {
+        pBrain.addActivityAndRemoveMemoryWhenStopped(Activity.FIGHT, 10, ImmutableList.of(new StopAttackingIfTargetInvalid<>((p_219540_) -> {
             return !pWarden.getAngerLevel().isAngry() || !pWarden.canTargetEntity(p_219540_);
         }, HunterAi::onTargetInvalid, false), new SetEntityLookTarget((p_219535_) -> {
             return isTarget(pWarden, p_219535_);
@@ -118,29 +110,17 @@ public class HunterAi {
     }
 
     private static boolean isTarget(HunterTest pWarden, LivingEntity pEntity) {
-        return pWarden.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).filter((p_219509_) -> {
-            return p_219509_ == pEntity;
-        }).isPresent();
+        return pWarden.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).filter((entity) -> entity == pEntity).isPresent();
     }
 
-    private static void onTargetInvalid(HunterTest p_219529_, LivingEntity p_219530_) {
-        if (!p_219529_.canTargetEntity(p_219530_)) {
-            p_219529_.clearAnger(p_219530_);
+    private static void onTargetInvalid(HunterTest hunter, LivingEntity entity) {
+        if (!hunter.canTargetEntity(entity)) {
+            hunter.clearAnger(entity);
         }
-
-        setDigCooldown(p_219529_);
-    }
-
-    public static void setDigCooldown(LivingEntity pEntity) {
-        if (pEntity.getBrain().hasMemoryValue(MemoryModuleType.DIG_COOLDOWN)) {
-            pEntity.getBrain().setMemoryWithExpiry(MemoryModuleType.DIG_COOLDOWN, Unit.INSTANCE, 1200L);
-        }
-
     }
 
     public static void setDisturbanceLocation(HunterTest pWarden, BlockPos pDisturbanceLocation) {
-        if (pWarden.level.getWorldBorder().isWithinBounds(pDisturbanceLocation) && !pWarden.getEntityAngryAt().isPresent() && !pWarden.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).isPresent()) {
-            setDigCooldown(pWarden);
+        if (pWarden.level.getWorldBorder().isWithinBounds(pDisturbanceLocation) && pWarden.getEntityAngryAt().isEmpty() && pWarden.getBrain().getMemory(MemoryModuleType.ATTACK_TARGET).isEmpty()) {
             pWarden.getBrain().setMemoryWithExpiry(MemoryModuleType.SNIFF_COOLDOWN, Unit.INSTANCE, 100L);
             pWarden.getBrain().setMemoryWithExpiry(MemoryModuleType.LOOK_TARGET, new BlockPosTracker(pDisturbanceLocation), 100L);
             pWarden.getBrain().setMemoryWithExpiry(MemoryModuleType.DISTURBANCE_LOCATION, pDisturbanceLocation, 100L);
