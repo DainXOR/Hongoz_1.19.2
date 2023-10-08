@@ -130,7 +130,7 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
         return null;
     }
     public double getAlertRange(){
-        return (int) this.getAttributeValue(Attributes.FOLLOW_RANGE);
+        return this.getAttributeValue(Attributes.FOLLOW_RANGE);
     }
     protected int getAlertTicks(){
         return ALERT_INTERVAL.sample(this.random);

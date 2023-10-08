@@ -34,9 +34,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.ForgeMod;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import oshi.util.tuples.Pair;
@@ -44,16 +44,25 @@ import software.bernie.geckolib3.core.IAnimatable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
-import java.util.stream.Stream;
+import java.util.function.Predicate;
 
 public class HonziadeEntity extends Infected implements IAnimatable{
     private static final EntityDataAccessor<Byte> DATA_FLAGS_ID = SynchedEntityData.defineId(HonziadeEntity.class, EntityDataSerializers.BYTE);
-    private static final List<Queen> activeQueens = new ArrayList<>(5);
+    private static final List<Queen> ACTIVE_QUEENS = new ArrayList<>(5);
+    public static final int QUEENING_AGE = 20 * 60 * 5;
+    private static final int TICKS_REQUEST_ADOPT = 20 * 60 * 2;
+
     private static boolean crowningInProgress = false;
     private static HonziadeEntity crowned = null;
 
-    public static final int SUITABLE_AGE = 20 * 60 * 5;
+    private final List<Queen> rejects = new ArrayList<>(5);
+    private int requestAdoptTimer = 0;
+
+    private boolean isHeir = false;
+    private boolean waitForHeir = false;
+    private HonziadeEntity heir = null;
 
     private Queen parent = null;
     public int age = 0;
@@ -62,7 +71,7 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         super(pEntityType, pLevel);
         this.xpReward = 25;
 
-        this.setParent(this.getClosestQueen().getA());
+        this.setParent(this.getClosestQueen(e->true).getA());
     }
 
     public static AttributeSupplier setAttributes(){
@@ -92,6 +101,19 @@ public class HonziadeEntity extends Infected implements IAnimatable{
 
     }
 
+    @Override
+    public void onRemovedFromWorld() {
+        if(this.hasParent()){
+            if(this.heir == null){
+                this.getParent().ownChildren--;
+            }
+            else {
+                this.getParent().adoptedChildren--;
+            }
+        }
+        super.onRemovedFromWorld();
+    }
+
     public void setParent(@NotNull Queen parent){
         this.parent = parent;
     }
@@ -103,7 +125,7 @@ public class HonziadeEntity extends Infected implements IAnimatable{
     }
     @Override
     public double getAlertRange() {
-        return super.getAlertRange() * 1.5;
+        return 1500.0d;
     }
 
     @Override
@@ -127,36 +149,50 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         alertedAlliesAmount = alertableSiblings.size();
     }
 
-    void addHonziadeAgeSaveData(CompoundTag pNbt) {
+    void addHonziadeSaveData(CompoundTag pNbt) {
         pNbt.putInt("HonziadeAge", this.age);
+
+        if(this.getParent() != null){
+            pNbt.putUUID("parent", this.getParent().uuid);
+        }
+
+        pNbt.putBoolean("isHeir", this.isHeir);
+        pNbt.putBoolean("waitHeir", this.waitForHeir);
+
+        if(this.waitForHeir) {
+            pNbt.putUUID("waitHeir", this.heir.uuid);
+        }
     }
-    void readHonziadeAgeSaveData(CompoundTag pTag) {
+    void readHonziadeSaveData(CompoundTag pTag) {
         this.age = pTag.getInt("HonziadeAge");
+
+        if(pTag.contains("parent")) {
+            this.setParent(getEntityFromTag(pTag, this.level, "parent"));
+        }
+
+        this.isHeir = pTag.getBoolean("isHeir");
+        this.waitForHeir = pTag.getBoolean("waitHeir");
+
+        if(this.waitForHeir){
+            this.heir = getEntityFromTag(pTag, this.level, "heir");
+        }
     }
 
     @Override
     public void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.addAdditionalSaveData(pCompound);
-        this.addHonziadeAgeSaveData(pCompound);
-
-        if(this.getParent() != null){
-            pCompound.putUUID("parent", this.getParent().uuid);
-        }
+        this.addHonziadeSaveData(pCompound);
     }
     @Override
     public void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
         super.readAdditionalSaveData(pCompound);
-        this.readHonziadeAgeSaveData(pCompound);
+        this.readHonziadeSaveData(pCompound);
+    }
 
-        if(pCompound.contains("parent")) {
-            ServerLevel level = (ServerLevel) this.level;
-            UUID entityUUID = pCompound.getUUID("parent");
-
-            if (level.getEntity(entityUUID) instanceof Queen parentEntity) {
-                this.setParent(parentEntity);
-            }
-        }
-
+    private static <T extends Entity> T getEntityFromTag(@NotNull CompoundTag tag, @NotNull Level level, @NotNull String key){
+        ServerLevel serverLevel = (ServerLevel) level;
+        UUID entityUUID = tag.getUUID(key);
+        return (T) serverLevel.getEntity(entityUUID);
     }
 
     public @NotNull MobType getMobType() {
@@ -187,6 +223,28 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         if (!this.level.isClientSide) {
             this.setClimbing(this.horizontalCollision);
             this.honziadeAging();
+
+            if(!this.hasParent()){
+                if(this.waitForHeir){
+                    if (this.heir.isQueen()){
+                        Queen h = (Queen)this.heir;
+                        this.waitForHeir = !h.requestAdoption(this);
+                    }
+                }
+                else {
+                    this.requestAdoptTimer++;
+                    if(this.requestAdoptTimer >= TICKS_REQUEST_ADOPT){
+                        this.requestAdoptTimer = 0;
+                        Queen parentCandidate = this.getClosestQueen(this.rejects::contains).getA();
+                        if(parentCandidate.requestAdoption(this)){
+                            this.setParent(parentCandidate);
+                            this.rejects.clear();
+                            return;
+                        }
+                        this.rejects.add(parentCandidate);
+                    }
+                }
+            }
         }
     }
 
@@ -214,8 +272,8 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         this.entityData.set(DATA_FLAGS_ID, b0);
     }
 
-    Pair<Queen, Double> getClosestQueen(){
-        if(activeQueens.isEmpty()){
+    Pair<Queen, Double> getClosestQueen(Predicate<Queen> filter){
+        if(ACTIVE_QUEENS.isEmpty()){
             return new Pair<>(null, 100_000.0);
         } else if (this.isQueen()) {
             return new Pair<>((Queen) this, 0.0);
@@ -224,7 +282,10 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         double closestDistance = 100_000;
         Queen closestQueen = null;
 
-        for (Queen queen : activeQueens) {
+        for (Queen queen : ACTIVE_QUEENS) {
+            if(!filter.test(queen)){
+                continue;
+            }
             double currentDistance = this.distanceToSqr(queen);
             if (currentDistance <= closestDistance) {
                 closestDistance = currentDistance;
@@ -238,12 +299,19 @@ public class HonziadeEntity extends Infected implements IAnimatable{
     }
 
     boolean canBecomeQueen(){
-        boolean b = this.hasParent() &&
-                this.distanceToSqr(this.getParent()) > this.getAlertRange() * 1.5f;
+        return (
+                !this.isAggressive() &&
+                this.age >= QUEENING_AGE &&
+                this.getHealth() == this.getMaxHealth() &&
+                this.hasParent() &&
+                this.distanceToSqr(this.getParent()) > this.getParent().getAlertRange() * this.getParent().getAlertRange()
+                ) || (
+                this.isAggressive() &&
+                this.alertedAllies() &&
+                this.getAlertedAlliesAmount() == 0 &&
+                this.getHealth() <= this.getMaxHealth() * 0.75f
+                );
 
-        return  (this.getClosestQueen().getB() > this.getAlertRange() * 1.5f) &&
-                    ((this.age >= SUITABLE_AGE && this.getHealth() == this.getMaxHealth() && !this.isAggressive()) ||
-                     (this.isAggressive() && this.alertedAllies() && this.getAlertedAlliesAmount() == 0 && this.getHealth() <= this.getMaxHealth() * 0.75f));
     }
     boolean tryBecomeQueen(){
         boolean succeeded = false;
@@ -273,7 +341,7 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         }
         newQueen.setPersistenceRequired();
         float healthRatio = this.getHealth() / this.getMaxHealth();
-        healthRatio *= (float)this.age / (float)SUITABLE_AGE;
+        healthRatio *= (float)this.age / (float) QUEENING_AGE;
         newQueen.setHealth(newQueen.getMaxHealth() * healthRatio);
 
         newQueen.setTarget(this.getTarget());
@@ -341,8 +409,12 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         public static final UniformInt REINFORCEMENTS_AMOUNT = UniformInt.of(2, 8);
         public static final float MIN_REINFORCEMENT_WAIT_PROGRESS = 0.25f;
         public static final int REINFORCEMENTS_COOLDOWN = 20 * 60 * 2;
+        public static final int CHILDREN_LIMIT = 30;
+        public static final int ADOPT_LIMIT = 20;
 
-        private final List<HonziadeEntity> children = new ArrayList<>(10);
+        private final List<HonziadeEntity> children = new ArrayList<>(15);
+        private int ownChildren = 0;
+        private int adoptedChildren = 0;
 
         public int REINFORCEMENTS_TICKS = 0;
 
@@ -383,30 +455,37 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         public boolean checkSpawnObstruction(@NotNull LevelReader pLevel) {
             return super.checkSpawnObstruction(pLevel) && pLevel.noCollision(this, this.getType().getDimensions().makeBoundingBox(this.position()));
         }
+        public boolean requestAdoption(@NotNull HonziadeEntity entity){
+            if((entity.waitForHeir && entity.heir == this) ||
+               (this.random.nextFloat() > ((float) this.adoptedChildren / ADOPT_LIMIT))){
+
+                this.adoptedChildren++;
+                this.children.add(entity);
+                return true;
+            }
+
+            return false;
+        }
 
         @Override
         protected int getAlertTicks() {
             return 20 * 30;
         }
-
         protected final void alertOthers() {
             if (this.getTarget() == null){
                 return;
             }
 
-            this.playSound(SoundEvents.SPIDER_HURT, 3.0F, 1.5F);
-            this.playSound(SoundEvents.GHAST_HURT, 5.0F, 1.5F);
-            this.playSound(SoundEvents.CREEPER_HURT, 3.0F, 1.5F);
-
+            this.playRoarSound();
+            this.children.removeIf(Objects::isNull);
             this.children.stream()
-                    .filter((entity) -> entity.getTarget() == null)
-                    .forEach((entity) -> {
-                entity.setTarget(this.getTarget());
+                    .filter((child) -> child.getTarget() == null)
+                    .forEach((child) -> {
+                child.setTarget(this.getTarget());
             });
         }
 
         public boolean canSpawnReinforcements(float waitProgress){
-
             if(REINFORCEMENTS_TICKS >= REINFORCEMENTS_COOLDOWN){
                 return true;
             }
@@ -419,7 +498,7 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         public boolean maybeSpawnReinforcements(){
             float waitProgress = (float)REINFORCEMENTS_TICKS / (float)REINFORCEMENTS_COOLDOWN;
 
-            if(this.canSpawnReinforcements(waitProgress)){
+            if(this.canSpawnReinforcements(waitProgress) && this.ownChildren < CHILDREN_LIMIT){
                 int reinforcementCount = this.isAggressive()?
                         (int)(REINFORCEMENTS_AMOUNT.getMinValue() * (1 + waitProgress)) :
                         REINFORCEMENTS_AMOUNT.sample(this.random);
@@ -428,9 +507,8 @@ public class HonziadeEntity extends Infected implements IAnimatable{
             }
             return false;
         }
+        @Contract(value = "_->true")
         public boolean spawnReinforcements(int count){
-            boolean succeeded = true;
-
             for (int i = 0; i <= count; i++){
                 HonziadeEntity child = ModEntityTypes.HONZIADE.get().create(this.level);
                 assert child != null;
@@ -439,10 +517,11 @@ public class HonziadeEntity extends Infected implements IAnimatable{
                 child.setPersistenceRequired();
                 this.children.add(child);
 
-                succeeded = succeeded && this.level.addFreshEntity(child);
+                this.level.addFreshEntity(child);
             }
 
-            return succeeded;
+            this.ownChildren += count;
+            return true;
         }
 
         public void tick() {
@@ -452,9 +531,6 @@ public class HonziadeEntity extends Infected implements IAnimatable{
             if(this.maybeSpawnReinforcements()){
                 REINFORCEMENTS_TICKS = 0;
             }
-
-            this.children.removeIf(LivingEntity::isDeadOrDying);
-
         }
 
         boolean isQueen() {
@@ -469,13 +545,14 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         }
 
         public void onAddedToWorld() {
-            activeQueens.add(this);
+            ACTIVE_QUEENS.add(this);
 
             super.onAddedToWorld();
         }
         public void onRemovedFromWorld() {
-            activeQueens.remove(this);
+            ACTIVE_QUEENS.remove(this);
 
+            this.children.removeIf(Objects::isNull);
             this.children.stream()
                     .filter(LivingEntity::isAlive)
                     .anyMatch(candidate -> {
@@ -497,20 +574,51 @@ public class HonziadeEntity extends Infected implements IAnimatable{
         protected void playStepSound(@NotNull BlockPos blockPos, @NotNull BlockState blockState) {
             this.playSound(SoundEvents.SPIDER_STEP, 3.0F, 0.2F);
         }
+        protected void playRoarSound(){
+            this.playSound(SoundEvents.SPIDER_HURT, 8.0F, 2.5F);
+            this.playSound(SoundEvents.CREEPER_HURT, 8.0F, 1.5F);
+
+            this.playSound(SoundEvents.GHAST_HURT, 8.0F, 4.0F);
+            this.playSound(SoundEvents.GHAST_HURT, 8.0F, 4.0F);
+            this.playSound(SoundEvents.GHAST_HURT, 8.0F, 4.0F);
+            this.playSound(SoundEvents.GHAST_HURT, 8.0F, 4.0F);
+
+            this.playSound(SoundEvents.GHAST_HURT, 8.0F, 1.0F);
+            this.playSound(SoundEvents.GHAST_HURT, 8.0F, 1.0F);
+            this.playSound(SoundEvents.GHAST_HURT, 8.0F, 1.0F);
+            this.playSound(SoundEvents.GHAST_HURT, 8.0F, 1.0F);
+
+            this.playSound(SoundEvents.GHAST_HURT, 8.0F, 0.5F);
+            this.playSound(SoundEvents.GHAST_HURT, 8.0F, 0.5F);
+            this.playSound(SoundEvents.GHAST_HURT, 8.0F, 0.5F);
+            this.playSound(SoundEvents.GHAST_HURT, 8.0F, 0.5F);
+        }
+
         protected SoundEvent getAmbientSound() {
             return ModSounds.HONZIADE_AMBIENT.get();
         }
         protected SoundEvent getHurtSound(@NotNull DamageSource damageSource) {
-            this.playSound(SoundEvents.GHAST_HURT, 0.8F, 2.0F);
-            this.playSound(SoundEvents.CREEPER_HURT, 1.8F, .75F);
-            this.playSound(SoundEvents.SPIDER_HURT, 2.0F, 0.8F);
-
+            this.playRoarSound();
             return SoundEvents.HOSTILE_HURT;
         }
         protected SoundEvent getDeathSound() {
-            this.playSound(SoundEvents.GHAST_DEATH, 0.8F, 0.3F);
-            this.playSound(SoundEvents.CREEPER_DEATH, 1.8F, .75F);
-            this.playSound(SoundEvents.SPIDER_DEATH, 2.0F, 0.8F);
+            this.playSound(SoundEvents.SPIDER_DEATH, 8.0F, 2.5F);
+            this.playSound(SoundEvents.CREEPER_DEATH, 8.0F, 1.5F);
+
+            this.playSound(SoundEvents.GHAST_DEATH, 8.0F, 4.0F);
+            this.playSound(SoundEvents.GHAST_DEATH, 8.0F, 4.0F);
+            this.playSound(SoundEvents.GHAST_DEATH, 8.0F, 4.0F);
+            this.playSound(SoundEvents.GHAST_DEATH, 8.0F, 4.0F);
+
+            this.playSound(SoundEvents.GHAST_DEATH, 8.0F, 1.0F);
+            this.playSound(SoundEvents.GHAST_DEATH, 8.0F, 1.0F);
+            this.playSound(SoundEvents.GHAST_DEATH, 8.0F, 1.0F);
+            this.playSound(SoundEvents.GHAST_DEATH, 8.0F, 1.0F);
+
+            this.playSound(SoundEvents.GHAST_DEATH, 8.0F, 0.5F);
+            this.playSound(SoundEvents.GHAST_DEATH, 8.0F, 0.5F);
+            this.playSound(SoundEvents.GHAST_DEATH, 8.0F, 0.5F);
+            this.playSound(SoundEvents.GHAST_DEATH, 8.0F, 0.5F);
 
             return SoundEvents.HOSTILE_DEATH;
         }
