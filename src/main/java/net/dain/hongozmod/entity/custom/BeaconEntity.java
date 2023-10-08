@@ -1,19 +1,17 @@
 package net.dain.hongozmod.entity.custom;
 
-import com.mojang.blaze3d.shaders.Effect;
-import com.mojang.logging.LogUtils;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.entity.templates.Infected;
 import net.dain.hongozmod.entity.templates.LoopType;
-import net.minecraft.client.renderer.EffectInstance;
+import net.dain.hongozmod.item.ModItems;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.AreaEffectCloud;
@@ -23,19 +21,18 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
-import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.ai.goal.target.ResetUniversalAngerTargetGoal;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.animal.IronGolem;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.monster.warden.Warden;
 import net.minecraft.world.entity.npc.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import org.jline.utils.Log;
 import software.bernie.geckolib3.core.AnimationState;
 import software.bernie.geckolib3.core.IAnimatable;
 import software.bernie.geckolib3.core.PlayState;
@@ -44,12 +41,15 @@ import software.bernie.geckolib3.core.event.predicate.AnimationEvent;
 public class BeaconEntity extends Infected {
     public static final int TICKS_TO_REGENERATE = 20 * 3;
     public static final int REGENERATION_AMOUNT = 5;
+    public static final int DISTANCE_TO_REGENERATE = 6;
 
-    public static final int TICKS_TO_THROW = 20 * 60;
-    public static final int AGGRESSIVE_TICKS_TO_THROW = 20 * 10;
+    public static final int MAX_CONSECUTIVE_THROWS = 4;
+    private static final int SECONDS_TO_THROW = 60;
+    public static final int MIN_TICKS_TO_THROW = 20;
 
-    public static final int MIN_WAIT_TO_THROW = 20;
-    public static final int MAX_CONSECUTIVE_THROWS = 3;
+    public static final int TICKS_TO_THROW = 20 * SECONDS_TO_THROW;
+    public static final int AGGRESSIVE_TICKS_TO_THROW = 20 * (SECONDS_TO_THROW / (3 * MAX_CONSECUTIVE_THROWS));
+    public static final int MAX_AGGRESSIVE_DISTANCE = DISTANCE_TO_REGENERATE + 2;
 
     public static final int MIN_ATTACK_HEALTH = 50;
     public static final int AGGRESSIVE_THROW_HEALTH_LOSS = 10;
@@ -57,6 +57,8 @@ public class BeaconEntity extends Infected {
     public static final int PANIC_ATTACK_HEALTH_LOSS = 50;
     public static final int PANIC_TARGET_DISTANCE = 16;
     public static final int PANIC_COOLDOWN = 20 * 60;
+
+    private int dropCount = 3;
 
     private int regenerateTimer = 0;
 
@@ -81,6 +83,16 @@ public class BeaconEntity extends Infected {
                 .add(Attributes.MOVEMENT_SPEED, 0.00)
                 .add(Attributes.FOLLOW_RANGE, 32.00)
                 .build();
+    }
+
+    @Override
+    protected void dropCustomDeathLoot(@NotNull DamageSource pSource, int pLooting, boolean pRecentlyHit) {
+        ItemStack hitDrop = ModItems.RAW_WOLFRAMITE.get().getDefaultInstance();
+        while (this.dropCount > 0){
+            this.spawnAtLocation(hitDrop);
+            this.dropCount--;
+        }
+        super.dropCustomDeathLoot(pSource, pLooting, pRecentlyHit);
     }
 
     @Override
@@ -111,8 +123,18 @@ public class BeaconEntity extends Infected {
 
     @Override
     public boolean hurt(@NotNull DamageSource pSource, float pAmount) {
-        return  (pSource.isProjectile() && this.random.nextBoolean()) ||
-                super.hurt(pSource, pAmount * 0.5f);
+
+        if(pSource.getEntity() instanceof LivingEntity le){
+            this.setTarget(le);
+        }
+
+        if(pSource.isProjectile()){
+            float dmgMultiplier = this.random.nextBoolean() ? 0.3f : 0.6f;
+            this.dropCount -= this.random.nextFloat() < 0.8f ? 0 : 1;
+            return this.random.nextBoolean() && super.hurt(pSource, pAmount * dmgMultiplier);
+        }
+
+        return super.hurt(pSource, pAmount);
     }
 
     @Override
@@ -136,12 +158,11 @@ public class BeaconEntity extends Infected {
         return this.getHealth() < this.getMaxHealth();
     }
     public boolean canRegenerate(){
-        return !this.isAggressive() && this.regenerateTimer >= TICKS_TO_REGENERATE;
-    }
-    public void regenerate(){
-        this.heal(REGENERATION_AMOUNT);
-        net.minecraftforge.event.ForgeEventFactory.onLivingHeal(this, REGENERATION_AMOUNT);
-        this.sendPacket((byte) 61);
+        return (!this.isAggressive() ||
+                    (this.getTarget() != null &&
+                    this.getTarget().distanceToSqr(this) > DISTANCE_TO_REGENERATE * DISTANCE_TO_REGENERATE)
+                )
+                && this.regenerateTimer >= TICKS_TO_REGENERATE;
     }
     public void tryRegenerate(){
         this.regenerateTimer++;
@@ -149,6 +170,11 @@ public class BeaconEntity extends Infected {
             regenerate();
             this.regenerateTimer = 0;
         }
+    }
+    public void regenerate(){
+        this.heal(REGENERATION_AMOUNT);
+        net.minecraftforge.event.ForgeEventFactory.onLivingHeal(this, REGENERATION_AMOUNT);
+        this.sendPacket((byte) 61);
     }
 
     public boolean canThrow(){
@@ -159,7 +185,7 @@ public class BeaconEntity extends Infected {
         return  this.isAggressive() &&
                 this.throwTimer >= AGGRESSIVE_TICKS_TO_THROW &&
                 this.getTarget() != null &&
-                this.distanceToSqr(this.getTarget()) <= getAttributeValue(Attributes.FOLLOW_RANGE);
+                this.distanceToSqr(this.getTarget()) <= MAX_AGGRESSIVE_DISTANCE * MAX_AGGRESSIVE_DISTANCE;
     }
     public boolean canNormalThrow(){
         return  this.consecutiveThrows > 0 ||
@@ -169,11 +195,9 @@ public class BeaconEntity extends Infected {
                 this.throwTimer >= TICKS_TO_THROW
                 );
     }
-
     public boolean isThrowingEgg(){
-        return this.throwTimer <= MIN_WAIT_TO_THROW;
+        return this.throwTimer <= MIN_TICKS_TO_THROW;
     }
-
     public void maybeThrowEgg(){
         if(this.level.isClientSide()){
             return;
@@ -197,7 +221,6 @@ public class BeaconEntity extends Infected {
         }
         this.throwTimer++;
     }
-
     public void throwEgg(){
         double dX = (this.random.nextFloat() * 1.5) - 0.75;
         double dZ = (this.random.nextFloat() * 1.5) - 0.75;
@@ -250,8 +273,8 @@ public class BeaconEntity extends Infected {
         assert poisonCloud != null;
 
         MobEffectInstance effect_1 = new MobEffectInstance(MobEffects.HARM);
-        MobEffectInstance effect_2 = new MobEffectInstance(MobEffects.POISON, 20 * 30, 1);
-        MobEffectInstance effect_3 = new MobEffectInstance(MobEffects.BLINDNESS, 20 * 30, 0);
+        MobEffectInstance effect_2 = new MobEffectInstance(MobEffects.POISON, 20 * 5, 1);
+        MobEffectInstance effect_3 = new MobEffectInstance(MobEffects.BLINDNESS, 20 * 50, 0);
 
         poisonCloud.addEffect(effect_1);
         poisonCloud.addEffect(effect_2);
@@ -311,6 +334,17 @@ public class BeaconEntity extends Infected {
     @Override
     public float getShadowRadius() {
         return 0.8f;
+    }
+
+    @Override
+    public void addAdditionalSaveData(@NotNull CompoundTag pCompound) {
+        pCompound.putInt("specialDropCount", this.dropCount);
+        super.addAdditionalSaveData(pCompound);
+    }
+    @Override
+    public void readAdditionalSaveData(@NotNull CompoundTag pCompound) {
+        super.readAdditionalSaveData(pCompound);
+        this.dropCount = pCompound.getInt("specialDropCount");
     }
 
     private void sendPacket(byte value){

@@ -215,7 +215,7 @@ public class HunterEntity extends Infected implements VibrationListener.Vibratio
     }
 
     @Override
-    public boolean recibeDamageFrom(Entity pEntity) {
+    public boolean canBeHurtBy(Entity pEntity) {
         return true;
     }
 

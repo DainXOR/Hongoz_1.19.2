@@ -41,7 +41,7 @@ import java.util.Random;
 
 public class HordenEntity extends Infected {
 
-    public static final int ALIVE_LIMIT = 10;
+    public static final int ALIVE_LIMIT = 35;
     public static int SPAWN_COUNT = 0;
     public static int ALIVE_COUNT = 0;
 
