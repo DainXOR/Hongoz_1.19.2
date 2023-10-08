@@ -58,7 +58,7 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
         this.targetSelector.addGoal(10, new ResetUniversalAngerTargetGoal<>(this, true));
     }
 
-    public boolean recibeDamageFrom(Entity pEntity){
+    public boolean canBeHurtBy(Entity pEntity){
         return  pEntity instanceof HunterEntity ||
                 !(pEntity instanceof Infected ||
                 (pEntity instanceof AreaEffectCloud aoeCloud && aoeCloud.getOwner() instanceof Infected) ||
@@ -72,7 +72,7 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
     }
 
     public float customHurt(DamageSource pSource, float pAmount){
-        if(!this.recibeDamageFrom(pSource.getEntity())){
+        if(!this.canBeHurtBy(pSource.getEntity())){
             return 0.0f;
         }
 
@@ -107,7 +107,7 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
 
     public boolean customAddEffect(MobEffectInstance pEffectInstance, @Nullable Entity pEntity){
         return !((!pEffectInstance.getEffect().isBeneficial()) &&
-                this.recibeDamageFrom(pEntity));
+                this.canBeHurtBy(pEntity));
     }
     @Override
     public boolean addEffect(@NotNull MobEffectInstance pEffectInstance, @Nullable Entity pEntity) {
@@ -215,6 +215,10 @@ public abstract class Infected extends Monster implements IAnimatable, NeutralMo
     }
     @Override
     public void setTarget(@Nullable LivingEntity pTarget) {
+        if(!this.canBeHurtBy(pTarget)){
+            return;
+        }
+
         if (this.getTarget() == null && pTarget != null) {
             this.ticksUntilNextAlert = ALERT_INTERVAL.sample(this.random);
         }
