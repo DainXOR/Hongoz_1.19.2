@@ -1,7 +1,6 @@
 package net.dain.hongozmod.entity.custom.honziade;
 
-import net.dain.hongozmod.colony.AlertLevel;
-import net.dain.hongozmod.colony.role.ColonyQueen;
+import net.dain.hongozmod.colony.role.ColonyRoles;
 import net.dain.hongozmod.colony.role.ColonyWorker;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -10,6 +9,8 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.EnumSet;
 
 public class HonziadeWorker extends AbstractHonziadeEntity implements ColonyWorker {
     public HonziadeWorker(EntityType<? extends Monster> pEntityType, Level pLevel) {
@@ -28,33 +29,14 @@ public class HonziadeWorker extends AbstractHonziadeEntity implements ColonyWork
                 .build();
     }
 
-    @Override
-    public void returnToQueen(@NotNull AlertLevel priority) {
+    @Override @NotNull
+    public EnumSet<ColonyRoles> getRoles() {
+        EnumSet<ColonyRoles> roles = super.getRoles();
+        if(!roles.contains(ColonyRoles.WORKER))
+            this.addRole(ColonyRoles.WORKER);
 
+        return roles;
     }
 
-    @Override
-    public void alertColony() {
 
-    }
-
-    @Override
-    public boolean isHeir() {
-        return false;
-    }
-
-    @Override
-    public boolean canBecomeQueen() {
-        return false;
-    }
-
-    @Override
-    public ColonyQueen becomeQueen() {
-        return null;
-    }
-
-    @Override
-    public int queeningScore() {
-        return 0;
-    }
 }

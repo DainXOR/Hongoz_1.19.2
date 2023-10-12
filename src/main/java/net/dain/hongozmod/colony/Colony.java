@@ -10,12 +10,13 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 
 public class Colony<
         MemberType extends ColonyMember,
-        QueenType extends LivingEntity & ColonyQueen,
-        ColonyType extends Colony<MemberType, QueenType, ?>>{
+        QueenType extends ColonyQueen>{
+
     public static final int WORKER_BASE_CHANCE = 160;
     public static final int EXPLORER_BASE_CHANCE = 80;
     public static final int WARRIOR_BASE_CHANCE = 40;
@@ -32,37 +33,47 @@ public class Colony<
     public final int maxCapacity;
     protected int actualSize = 0;
     protected int growAttempts = 0;
-
-    protected List<? extends MemberType> newborns = new ArrayList<>(10);
-    protected List<? extends ColonyWorker> workers = new ArrayList<>(10);
-    protected List<? extends ColonyExplorer> explorers = new ArrayList<>(10);
-    protected List<? extends ColonyWarrior> warriors = new ArrayList<>(10);
-    protected List<? extends ColonyRoyalWarrior> royalWarriors = new ArrayList<>(5);
-    protected List<ColonyHeir> heirs = new ArrayList<>(3);
-    protected QueenType ColonyQueen;
     protected int colonyAge = 0;
 
+    protected List<ColonyMember> newborns = new ArrayList<>(10);
+    protected List<ColonyWorker> workers = new ArrayList<>(10);
+    protected List<ColonyExplorer> explorers = new ArrayList<>(10);
+    protected List<ColonyWarrior> warriors = new ArrayList<>(10);
+    protected List<ColonyRoyalWarrior> royalWarriors = new ArrayList<>(5);
+    protected List<ColonyMember> heirs = new ArrayList<>(3);
+    protected QueenType ColonyQueen;
+
     protected final RandomSource random = RandomSource.create();
-    protected final Class<ColonyType> colonyType;
 
     protected LivingEntity target = null;
     protected AlertLevel alertLevel = AlertLevel.NONE;
 
-    public Colony(Class<ColonyType> colonyType, QueenType newQueen, int capacity){
-        this.colonyType = colonyType;
+    /*-------------------------------- Methods start --------------------------------*/
+
+    public Colony(QueenType newQueen, int capacity){
         this.ColonyQueen = newQueen;
         this.maxCapacity = capacity;
     }
-    public Colony(Class<ColonyType> colonyType, QueenType newQueen){
-        this.colonyType = colonyType;
+    public Colony(QueenType newQueen){
         this.ColonyQueen = newQueen;
         this.maxCapacity = DEFAULT_CAPACITY;
     }
 
-    protected ColonyType growColony(){
-        ColonyType newColony = this.colonyType.cast(new Colony<>(this.colonyType, this.getQueen(), this.maxCapacity + DEFAULT_CAPACITY));
+    public boolean requestColonyGrow(ColonyMember member){
+        return this.getQueen() == member && this.growColony();
+    }
+    protected boolean growColony(){
+        this.getQueen().setColony(this.growColony(this.getClass()));
+        return true;
+    }
+    protected <ColonyType extends Colony<MemberType, QueenType>>
+    ColonyType growColony(Class<ColonyType> colonyType){
+        ColonyType newColony = colonyType.cast(new Colony<>(
+                this.getQueen(),
+                this.maxCapacity + DEFAULT_CAPACITY));
+
         newColony.setMembers(this);
-        newColony.setHeirs((List<MemberType>) this.getHeirs());
+        newColony.setHeirs(this.getHeirs());
         newColony.colonyAge = this.colonyAge;
         newColony.actualSize = this.actualSize;
         newColony.setTarget(this.getTarget());
@@ -70,68 +81,57 @@ public class Colony<
         return newColony;
     }
 
-    public boolean requestColonyGrow(ColonyMember member){
-        return this.getQueen() == member && this.getQueen().setColony(this.growColony());
-    }
-
-    public List<MemberType> getMembers(){
+    public List<ColonyMember> getMembers(){
         List<ColonyMember> members = new ArrayList<>();
-        members.addAll(workers);
-        members.addAll(explorers);
-        members.addAll(warriors);
-        members.addAll(royalWarriors);
+        members.addAll(this.getWorkers());
+        members.addAll(this.getExplorers());
+        members.addAll(this.getWarriors());
+        members.addAll(this.getRoyalWarriors());
 
-        return (List<MemberType>) members;
+        return members;
     }
-    public List<MemberType> getAllMembers(){
+    public List<ColonyMember> getAllMembers(){
         List<ColonyMember> members = new ArrayList<>();
-        members.addAll(newborns);
-        members.addAll(getMembers());
+        members.addAll(this.getNewborns());
+        members.addAll(this.getMembers());
         members.add(this.getQueen());
 
-        return (List<MemberType>) members;
+        return members;
     }
 
-    public List<? extends MemberType> getNewborns(){
+    public List<ColonyMember> getNewborns(){
         return this.newborns;
     }
-    public List<? extends ColonyWorker> getWorkers(){
+    public List<ColonyWorker> getWorkers(){
         return this.workers;
     }
-    public List<? extends ColonyExplorer> getExplorers(){
+    public List<ColonyExplorer> getExplorers(){
         return this.explorers;
     }
-    public List<? extends ColonyWarrior> getWarriors(){
+    public List<ColonyWarrior> getWarriors(){
         return this.warriors;
     }
-    public List<? extends ColonyRoyalWarrior> getRoyalWarriors(){
+    public List<ColonyRoyalWarrior> getRoyalWarriors(){
         return this.royalWarriors;
     }
-    public List<? extends ColonyHeir> getHeirs(){
+    public List<ColonyMember> getHeirs(){
         return this.heirs;
     }
 
-    public void setMembers(@Nullable List<? extends MemberType> newborns,
-                           @Nullable List<? extends ColonyWorker> workers,
-                           @Nullable List<? extends ColonyExplorer> explorers,
-                           @Nullable List<? extends ColonyWarrior> warriors,
-                           @Nullable List<? extends ColonyRoyalWarrior> royalWarriors){
-        if(newborns != null){
-            this.newborns = newborns;
-        }
-        if(workers != null){
-            this.workers = workers;
-        }if(explorers != null){
-            this.explorers = explorers;
-        }if(warriors != null){
-            this.warriors = warriors;
-        }if(royalWarriors != null){
-            this.royalWarriors = royalWarriors;
-        }
+    public void setMembers(@Nullable List<ColonyMember> newborns,
+                           @Nullable List<ColonyWorker> workers,
+                           @Nullable List<ColonyExplorer> explorers,
+                           @Nullable List<ColonyWarrior> warriors,
+                           @Nullable List<ColonyRoyalWarrior> royalWarriors){
 
+        this.newborns = newborns != null? newborns : this.newborns;
+        this.workers = workers != null? workers : this.workers;
+        this.explorers = explorers != null? explorers : this.explorers;
+        this.warriors = warriors != null? warriors : this.warriors;
+        this.royalWarriors = royalWarriors != null? royalWarriors : this.royalWarriors;
     }
 
-    public void setMembers(Colony<MemberType, QueenType, ?> colony){
+    public void setMembers(@NotNull Colony<MemberType, QueenType> colony){
         this.setMembers(
                 colony.getNewborns(),
                 colony.getWorkers(),
@@ -140,32 +140,49 @@ public class Colony<
                 colony.getRoyalWarriors());
     }
 
-    public void setHeirs(List<MemberType> heirs){
-        List<ColonyHeir> newHeirs = new ArrayList<>();
+    public EnumSet<ColonyRoles> allowedRolesBecomeHeir(){
+        // This is stupid :/
+        return EnumSet.of(ColonyRoles.HEIR, ColonyRoles.WORKER);
+    }
+    public boolean canBecomeHair(@NotNull EnumSet<ColonyRoles> roles){
+        // Java enums are shit >:(
+
+        int flags = 0b0, allowed = 0b0;
+        for (ColonyRoles role : roles) {
+            flags |= role.value;
+        }
+        for(ColonyRoles role : this.allowedRolesBecomeHeir()){
+            allowed |= role.value;
+        }
+
+        return (flags & allowed) != 0;
+    }
+
+
+    public void setHeirs(List<ColonyMember> heirs){
+        List<ColonyMember> newHeirs = new ArrayList<>();
         heirs.forEach(possibleHeir -> {
-            if(possibleHeir instanceof ColonyWorker accepted){
-                newHeirs.add(accepted);
-                accepted.setRole(ColonyRoles.HEIR);
+            if(this.canBecomeHair(possibleHeir.getRoles())){
+                newHeirs.add(possibleHeir);
+                possibleHeir.addRole(ColonyRoles.HEIR);
             }
         });
         this.heirs.clear();
         this.heirs = newHeirs;
     }
     public void addHeir(MemberType newHeir){
-        if(newHeir instanceof ColonyWorker worker) {
-            this.heirs.add(worker);
-            this.actualSize += 1;
+        if(this.canBecomeHair(newHeir.getRoles())) {
+            this.heirs.add(newHeir);
         }
     }
-    public void addHeirs(List<MemberType> newHeirs){
-        List<ColonyWorker> workers = new ArrayList<>();
+    public void addHeirs(List<ColonyMember> newHeirs){
+        List<ColonyMember> accepted = new ArrayList<>();
         newHeirs.forEach(possibleHeir -> {
-            if(possibleHeir instanceof ColonyWorker accepted){
-                workers.add(accepted);
+            if(this.canBecomeHair(possibleHeir.getRoles())){
+                accepted.add(possibleHeir);
             }
         });
-        this.heirs.addAll(workers);
-        this.actualSize += newHeirs.size();
+        this.heirs.addAll(accepted);
     }
 
     public @NotNull QueenType getQueen(){
@@ -188,10 +205,8 @@ public class Colony<
 
         return false;
     }
-    @Contract("null->false")
-    protected boolean approveMember(@Nullable ColonyMember newMember){
-        MemberType m = (MemberType) newMember;
-        return (m == null && this.random.nextFloat() > this.getRejectChance()) && newMember.getColony() == null;
+    protected boolean approveMember(@NotNull ColonyMember newMember){
+        return (this.random.nextFloat() > this.getRejectChance()) && newMember.getColony() == null;
     }
     protected boolean assignRole(@NotNull ColonyMember member){
         final int workerChance = WORKER_BASE_CHANCE + this.getQueen().getWorkerChance();
@@ -219,18 +234,14 @@ public class Colony<
         }
 
         if(this.assignRole(member, newRole)){
-
+            return true;
         }
         return false;
     }
     protected boolean assignRole(@NotNull ColonyMember member, ColonyRoles role){
         MemberType m = member.changeRole(role);
 
-        if(m == null){
-            return false;
-        }
-        member = m;
-        return true;
+        return m != null;
     }
 
     public float getRejectChance(){
@@ -249,12 +260,18 @@ public class Colony<
         this.alertLevel = AlertLevel.CRITICAL;
     }
     protected QueenType selectNewQueen(){
-        this.heirs.sort(Comparator.comparingInt(ColonyHeir::queeningScore));
-        ColonyHeir optimalHeir = this.heirs.get(0);
+        List<ColonyMember> heirs = (List<ColonyMember>) this.getHeirs();
 
-        QueenType newQueen = (QueenType) optimalHeir.becomeQueen();
+        heirs.sort(Comparator.comparingInt(ColonyMember::queeningScore));
+        QueenType newQueen;
 
-        return newQueen;
+        for (ColonyMember heir : heirs) {
+            if(heir.canBecomeQueen()){
+                newQueen = (QueenType) heir.becomeQueen();
+                return newQueen;
+            }
+        }
+        return null;
     }
 
     public void setTarget(LivingEntity target){
@@ -268,7 +285,7 @@ public class Colony<
         return this.target;
     }
     public boolean inAlert(){
-        return this.target != null || this.alertLevel != AlertLevel.NONE;
+        return this.getAlertLevel() != AlertLevel.NONE || this.target != null;
     }
     public AlertLevel getAlertLevel(){
         return this.alertLevel;

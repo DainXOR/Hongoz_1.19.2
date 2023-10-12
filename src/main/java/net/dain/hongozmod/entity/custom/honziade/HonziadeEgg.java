@@ -10,6 +10,8 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.EnumSet;
+
 public class HonziadeEgg extends AbstractHonziadeEntity{
     public HonziadeEgg(EntityType<? extends Monster> pEntityType, Level pLevel) {
         super(pEntityType, pLevel);
@@ -27,17 +29,16 @@ public class HonziadeEgg extends AbstractHonziadeEntity{
     }
 
     @Override
-    public ColonyRoles getRole() {
-        return ColonyRoles.NONE;
+    public @NotNull EnumSet<ColonyRoles> getRoles() {
+        return EnumSet.of(ColonyRoles.NONE);
     }
 
     @Override
     public void returnToQueen(@NotNull AlertLevel priority) {
         return;
     }
-
     @Override
     public void alertColony() {
-
+        return;
     }
 }

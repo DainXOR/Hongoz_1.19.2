@@ -38,6 +38,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -189,7 +190,7 @@ public class HonziadeQueen extends AbstractHonziadeEntity implements ColonyQueen
     }
 
     @Override
-    public ColonyRoles getRole() {
+    public @NotNull EnumSet<ColonyRoles> getRoles() {
         return ColonyRoles.QUEEN;
     }
 

@@ -1,5 +1,4 @@
 package net.dain.hongozmod.colony.role;
 
-public interface ColonyWorker extends ColonyHeir{
-    boolean isHeir();
+public interface ColonyWorker extends ColonyMember{
 }

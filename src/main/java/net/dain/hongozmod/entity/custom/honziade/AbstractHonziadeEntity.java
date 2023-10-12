@@ -1,6 +1,7 @@
 package net.dain.hongozmod.entity.custom.honziade;
 
 import com.mojang.math.Vector3f;
+import net.dain.hongozmod.colony.AlertLevel;
 import net.dain.hongozmod.colony.Colony;
 import net.dain.hongozmod.colony.role.ColonyMember;
 import net.dain.hongozmod.colony.role.ColonyQueen;
@@ -18,8 +19,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
-import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
@@ -36,22 +35,23 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.common.ForgeMod;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib3.core.IAnimatable;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.EnumSet;
 import java.util.UUID;
 
-public abstract class AbstractHonziadeEntity extends Infected implements IAnimatable, ColonyMember {
-    private static final EntityDataAccessor<Byte> DATA_FLAGS_ID = SynchedEntityData.defineId(AbstractHonziadeEntity.class, EntityDataSerializers.BYTE);
-    public static final int QUEENING_AGE = 20 * 60 * 5;
-    protected HonziadeColony colony = null;
-    protected ColonyRoles role = ColonyRoles.NONE;
+import static net.dain.hongozmod.colony.role.ColonyRoles.HEIR;
+import static net.dain.hongozmod.colony.role.ColonyRoles.WORKER;
 
+public abstract class AbstractHonziadeEntity extends Infected implements IAnimatable, ColonyMember {
+    protected static final EntityDataAccessor<Byte> DATA_FLAGS_ID = SynchedEntityData.defineId(AbstractHonziadeEntity.class, EntityDataSerializers.BYTE);
+    public static final int QUEENING_AGE = 20 * 60 * 5;
+
+    protected HonziadeColony colony = null;
+    protected EnumSet<ColonyRoles> roles = EnumSet.of(ColonyRoles.NONE);
     protected int age = 0;
 
     public AbstractHonziadeEntity(EntityType<? extends Monster> pEntityType, Level pLevel) {
@@ -77,27 +77,58 @@ public abstract class AbstractHonziadeEntity extends Infected implements IAnimat
     }
 
 
-    @Contract("null->false") @Override
-    public boolean setColony(@Nullable Colony newColony){
+    @Override public <ColonyType extends Colony>
+    boolean setColony(@NotNull ColonyType newColony){
         if(newColony instanceof HonziadeColony hc){
             this.colony = hc;
             return true;
         }
         return false;
     }
+
     @Override
     public HonziadeColony getColony() {
         return this.colony;
     }
 
     @Override
-    public void setRole(ColonyRoles role) {
-        this.role = role;
+    public void setRoles(EnumSet<ColonyRoles> newRoles) {
+        this.roles = newRoles;
+    }
+    @Override
+    public void addRole(ColonyRoles role){
+        this.roles.add(role);
     }
 
     @Override
-    public ColonyRoles getRole() {
-        return this.role;
+    public @NotNull EnumSet<ColonyRoles> getRoles() {
+        return this.roles;
+    }
+
+
+    @Override
+    public <NewRoleClass extends ColonyMember> NewRoleClass changeRole(ColonyRoles newRole) {
+        if(this.getRoles().contains(newRole)){
+            return (NewRoleClass) this;
+        }
+
+        switch (newRole){
+            case WORKER -> {
+                HonziadeWorker a = new HonziadeWorker(ModEntityTypes.HONZIADE.get(), this.level);
+                a.setRoles(EnumSet.of(WORKER));
+
+                return (NewRoleClass) a;
+            }
+            case EXPLORER -> new HonziadeExplorer(ModEntityTypes.HONZIADE.get(), this.level);
+            case WARRIOR -> new HonziadeWarrior(ModEntityTypes.HONZIADE.get(), this.level);
+            case ROYAL_WARRIOR -> new HonziadeRoyalWarrior(ModEntityTypes.HONZIADE.get(), this.level);
+        }
+        return null;
+    }
+
+    @Override
+    public boolean isHeir() {
+        return this.getRoles().contains(HEIR);
     }
 
     @Override
@@ -116,6 +147,14 @@ public abstract class AbstractHonziadeEntity extends Infected implements IAnimat
     @Override
     protected void alertOthers() {
 
+
+    }
+    @Override
+    public void alertColony() {
+
+    }
+    @Override
+    public void returnToQueen(@NotNull AlertLevel priority) {
 
     }
 
@@ -200,7 +239,8 @@ public abstract class AbstractHonziadeEntity extends Infected implements IAnimat
         this.entityData.set(DATA_FLAGS_ID, b0);
     }
 
-    boolean canBecomeQueen(){
+    @Override
+    public boolean canBecomeQueen(){
         return (
                 !this.isAggressive() &&
                         this.age >= QUEENING_AGE &&
@@ -213,7 +253,12 @@ public abstract class AbstractHonziadeEntity extends Infected implements IAnimat
         );
 
     }
-    public ColonyQueen becomeQueen(){
+    @Override
+    public int queeningScore() {
+        return 0;
+    }
+    @Override
+    public HonziadeQueen becomeQueen(){
         HonziadeQueen newQueen = new HonziadeQueen(ModEntityTypes.HONZIADE_QUEEN.get(), this.level);
         newQueen.moveTo(Vec3.atBottomCenterOf(this.blockPosition()));
 
@@ -251,26 +296,6 @@ public abstract class AbstractHonziadeEntity extends Infected implements IAnimat
             this.setTarget(entity);
         }
         return super.doHurtTarget(pEntity);
-    }
-
-    @Override
-    public <NewRoleClass extends ColonyMember> NewRoleClass changeRole(ColonyRoles newRole) {
-        if(this.getRole() == newRole){
-            return (NewRoleClass) this;
-        }
-
-        switch (newRole){
-            case WORKER,FOOD_SACK,HEIR -> {
-                HonziadeWorker a = new HonziadeWorker(ModEntityTypes.HONZIADE.get(), this.level);
-                a.setRole(newRole);
-
-                return (NewRoleClass) a;
-            }
-            case EXPLORER -> new HonziadeExplorer(ModEntityTypes.HONZIADE.get(), this.level);
-            case WARRIOR -> new HonziadeWarrior(ModEntityTypes.HONZIADE.get(), this.level);
-            case ROYAL_WARRIOR -> new HonziadeRoyalWarrior(ModEntityTypes.HONZIADE.get(), this.level);
-        }
-        return null;
     }
 
     protected void playStepSound(@NotNull BlockPos blockPos, @NotNull BlockState blockState) {
