@@ -1,17 +1,20 @@
 modLoader="javafml"
 loaderVersion="[43,)"
 license="MIT License"
-issueTrackerURL="https://github.com/DainXOR/Hongoz_1.19.2/issues"
+issueTrackerURL="${github_page}/Hongoz_${mod_version}/issues"
 
 [[mods]]
     modId="${mod_id}"
     version="${mod_version}"
     displayName="Hongoz"
-    displayURL="https://legacy.curseforge.com/minecraft/mc-mods/hongoz"
+    displayURL="${curseforge_page}"
     logoFile="${mod_logo}.png"
-    credits="Hmmm..."
     authors="Dain, SammJA"
-    description='''A mod that adds new enemies to your world in an apocalyptic fungi infection.'''
+    credits='''
+    Programmer: Dain ( ${github_page} )
+    Designer: SammJa ( https://www.youtube.com/SammJa )
+    '''
+    description='''Can you survive agains the hordes of infecteds?'''
 
     # Display Test controls the display for your mod in the server connection screen
     # MATCH_VERSION means that your mod will cause a red X if the versions on client and server differ. This is the default behaviour and should be what you choose if you have server and client elements to your mod.
