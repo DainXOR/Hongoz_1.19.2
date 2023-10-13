@@ -1,0 +1,25 @@
+name: Main Build Test
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: windows-2019
+
+    steps:
+      - name: Compile
+        uses: Ruochenfu2011/compilation@v1
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Artifacts
+          path: ./build/libs
