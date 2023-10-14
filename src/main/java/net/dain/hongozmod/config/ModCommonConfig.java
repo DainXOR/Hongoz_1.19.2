@@ -1,8 +1,10 @@
 package net.dain.hongozmod.config;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraftforge.common.ForgeConfigSpec;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -29,11 +31,13 @@ public class ModCommonConfig {
     public static final ForgeConfigSpec.ConfigValue<Float> MOBS_WEAKNESS_MULTIPLIER;
 
     static {
-        BUILDER.push("Hongoz Configuration");
+        BUILDER.push("hongoz_common_config");
 
         // Define configs
 
         // Minerals configs
+        BUILDER.push("minerals");
+
         WOLFRAMITE_ORE_SMALL_VEINS_PER_CHUNK = BUILDER
                 .comment("Small wolframite ore veins that generate per chunk")
                 .define("Wolframite small vein chance", 4);
@@ -48,7 +52,10 @@ public class ModCommonConfig {
                 .comment("Max size of the large wolframite ore veins")
                 .define("Wolframite large vein size", 7);
 
+        BUILDER.pop();
         // Mob configs
+        BUILDER.push("mobs");
+
         DIFFICULTY_MULTIPLIER = BUILDER
                 .comment("Affects the spawn count of the mod enemies, their attribute values, drops amounts, etc.")
                 .define("Difficulty Multiplier", 1.0f);
@@ -70,18 +77,65 @@ public class ModCommonConfig {
                 .comment("Mobs can be set on fire under the sun.")
                 .define("Damage Multiplier", false);
 
-        MOBS_WEAKNESSES = BUILDER
+        List<String> damageSourceNames = List.of(
+                DamageSource.ANVIL.getMsgId(),
+                "arrow",
+                DamageSource.CACTUS.getMsgId(),
+                DamageSource.CRAMMING.getMsgId(),
+                DamageSource.DRAGON_BREATH.getMsgId(),
+                DamageSource.DROWN.getMsgId(),
+                DamageSource.DRY_OUT.getMsgId(),
+                "explosion.player",
+                DamageSource.FALL.getMsgId(),
+                DamageSource.FALLING_BLOCK.getMsgId(),
+                DamageSource.FALLING_STALACTITE.getMsgId(),
+                "fireworks",
+                DamageSource.FLY_INTO_WALL.getMsgId(),
+                DamageSource.FREEZE.getMsgId(),
+                DamageSource.GENERIC.getMsgId(),
+                DamageSource.HOT_FLOOR.getMsgId(),
+                DamageSource.IN_FIRE.getMsgId(),
+                DamageSource.IN_WALL.getMsgId(),
+                "indirectMagic",
+                DamageSource.LAVA.getMsgId(),
+                DamageSource.LIGHTNING_BOLT.getMsgId(),
+                DamageSource.MAGIC.getMsgId(),
+                "mob",
+                DamageSource.ON_FIRE.getMsgId(),
+                DamageSource.OUT_OF_WORLD.getMsgId(),
+                "player",
+                "sonic_boom",
+                DamageSource.STARVE.getMsgId(),
+                "sting",
+                DamageSource.SWEET_BERRY_BUSH.getMsgId(),
+                "thorns",
+                "thrown",
+                "trident",
+                DamageSource.WITHER.getMsgId(),
+                "witherSkull"
+        );
+
+        ForgeConfigSpec.Builder Temp = BUILDER
                 .comment("Damage sources that deal extra damage to the mobs.")
-                .comment("#  Damage sources in Vanilla: ")
-                .defineList("Weaknesses", List.of(
-                        DamageSource.IN_FIRE.toString(),
-                        DamageSource.ON_FIRE.toString(),
-                        DamageSource.LIGHTNING_BOLT.toString(),
-                        DamageSource.LAVA.toString(),
-                        DamageSource.HOT_FLOOR.toString()), source -> true);
+                .comment("Damage sources in Vanilla: ");
+
+        for (String name : damageSourceNames) {
+            Temp = Temp.comment(name);
+        }
+        MOBS_WEAKNESSES = Temp.defineList("Weaknesses", List.of(
+                        DamageSource.IN_FIRE.getMsgId(),
+                        DamageSource.ON_FIRE.getMsgId(),
+                        DamageSource.LIGHTNING_BOLT.getMsgId(),
+                        DamageSource.LAVA.getMsgId(),
+                        DamageSource.HOT_FLOOR.getMsgId()),
+                        source -> damageSourceNames.contains((String) source)
+                );
+
         MOBS_WEAKNESS_MULTIPLIER = BUILDER
                 .comment("Extra damage multiplier.")
                 .define("Weakness multiplier", 4.0f);
+
+        BUILDER.pop();
 
         BUILDER.pop();
         SPEC = BUILDER.build();
