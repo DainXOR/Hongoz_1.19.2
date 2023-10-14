@@ -2,6 +2,9 @@ package net.dain.hongozmod;
 
 import com.mojang.logging.LogUtils;
 import net.dain.hongozmod.block.ModBlocks;
+import net.dain.hongozmod.config.ModClientConfig;
+import net.dain.hongozmod.config.ModCommonConfig;
+import net.dain.hongozmod.config.ModServerConfig;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.entity.client.*;
 import net.dain.hongozmod.entity.custom.hunter.HunterEntity;
@@ -15,14 +18,19 @@ import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.SpawnPlacementRegisterEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 import software.bernie.geckolib3.GeckoLib;
+
+import java.util.Map;
 
 @Mod(HongozMod.MOD_ID)
 public class HongozMod {
@@ -42,6 +50,10 @@ public class HongozMod {
 
         GeckoLib.initialize();
 
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ModClientConfig.SPEC, "hongoz_config-client.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ModCommonConfig.SPEC, "hongoz_config-common.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ModServerConfig.SPEC, "hongoz_config-server.toml");
+
         modEventBus.addListener(this::commonSetup);
         MinecraftForge.EVENT_BUS.register(this);
     }
@@ -49,6 +61,7 @@ public class HongozMod {
     private void commonSetup(final FMLCommonSetupEvent event)
     {
         event.enqueueWork(() -> {
+            
             SpawnPlacements.register(ModEntityTypes.ZHONGO.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                     Monster::checkMonsterSpawnRules);
             SpawnPlacements.register(ModEntityTypes.HORDEN.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
