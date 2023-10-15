@@ -1,22 +1,18 @@
 package net.dain.hongozmod.config;
 
-import com.mojang.logging.LogUtils;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraftforge.common.ForgeConfigSpec;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class ModCommonConfig {
     public static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
     public static final ForgeConfigSpec SPEC;
 
-    public static final ForgeConfigSpec.ConfigValue<Integer> WOLFRAMITE_ORE_SMALL_VEINS_PER_CHUNK;
-    public static final ForgeConfigSpec.ConfigValue<Integer> WOLFRAMITE_ORE_LARGE_VEINS_PER_CHUNK;
-    public static final ForgeConfigSpec.ConfigValue<Integer> WOLFRAMITE_ORE_VEINS_SIZE_SMALL;
-    public static final ForgeConfigSpec.ConfigValue<Integer> WOLFRAMITE_ORE_VEINS_SIZE_LARGE;
-
+    public static final ForgeConfigSpec.ConfigValue<Integer> WOLFRAMITE_SMALL_VEINS_PER_CHUNK;
+    public static final ForgeConfigSpec.ConfigValue<Integer> WOLFRAMITE_LARGE_VEINS_PER_CHUNK;
+    public static final ForgeConfigSpec.ConfigValue<Integer> WOLFRAMITE_VEINS_SIZE_SMALL;
+    public static final ForgeConfigSpec.ConfigValue<Integer> WOLFRAMITE_VEINS_SIZE_LARGE;
 
 
     public static final ForgeConfigSpec.ConfigValue<Float> DIFFICULTY_MULTIPLIER;
@@ -38,17 +34,19 @@ public class ModCommonConfig {
         // Minerals configs
         BUILDER.push("minerals");
 
-        WOLFRAMITE_ORE_SMALL_VEINS_PER_CHUNK = BUILDER
-                .comment("Small wolframite ore veins that generate per chunk")
+        WOLFRAMITE_SMALL_VEINS_PER_CHUNK = BUILDER
+                .comment("Small wolframite ore veins that generate per chunk.")
+                .comment("Generate up to n veins per chunk. [default: 4]")
                 .define("Wolframite small vein chance", 4);
-        WOLFRAMITE_ORE_LARGE_VEINS_PER_CHUNK = BUILDER
-                .comment("Large wolframite ore veins that generate per chunk")
+        WOLFRAMITE_LARGE_VEINS_PER_CHUNK = BUILDER
+                .comment("Large wolframite ore veins that generate per chunk.")
+                .comment("Generate once for every n chunks. [default: 2]")
                 .define("Wolframite large vein chance", 2);
 
-        WOLFRAMITE_ORE_VEINS_SIZE_SMALL = BUILDER
+        WOLFRAMITE_VEINS_SIZE_SMALL = BUILDER
                 .comment("Max size of the small wolframite ore veins")
                 .define("Wolframite small vein size", 3);
-        WOLFRAMITE_ORE_VEINS_SIZE_LARGE = BUILDER
+        WOLFRAMITE_VEINS_SIZE_LARGE = BUILDER
                 .comment("Max size of the large wolframite ore veins")
                 .define("Wolframite large vein size", 7);
 

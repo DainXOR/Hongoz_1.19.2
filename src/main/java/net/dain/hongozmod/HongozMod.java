@@ -40,6 +40,10 @@ public class HongozMod {
     public HongozMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ModClientConfig.SPEC, "hongoz_config-client.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ModCommonConfig.SPEC, "hongoz_config-common.toml");
+        //ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ModServerConfig.SPEC, "hongoz_config-server.toml");
+
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
         ModSounds.register(modEventBus);
@@ -49,10 +53,6 @@ public class HongozMod {
         ModPlacedFeatures.register(modEventBus);
 
         GeckoLib.initialize();
-
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ModClientConfig.SPEC, "hongoz_config-client.toml");
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ModCommonConfig.SPEC, "hongoz_config-common.toml");
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ModServerConfig.SPEC, "hongoz_config-server.toml");
 
         modEventBus.addListener(this::commonSetup);
         MinecraftForge.EVENT_BUS.register(this);

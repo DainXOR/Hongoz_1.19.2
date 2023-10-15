@@ -15,6 +15,9 @@ import net.minecraftforge.registries.RegistryObject;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static net.dain.hongozmod.config.ModCommonConfig.WOLFRAMITE_VEINS_SIZE_LARGE;
+import static net.dain.hongozmod.config.ModCommonConfig.WOLFRAMITE_VEINS_SIZE_SMALL;
+
 
 public class ModConfiguredFeatures {
     public static final DeferredRegister<ConfiguredFeature<?, ?>> CONFIGURED_FEATURES = DeferredRegister.create(Registry.CONFIGURED_FEATURE_REGISTRY, HongozMod.MOD_ID);
@@ -25,9 +28,9 @@ public class ModConfiguredFeatures {
     ));
 
     public static final RegistryObject<ConfiguredFeature<?, ?>> WOLFRAMITE_VEIN = CONFIGURED_FEATURES.register("wolframite_vein",
-            () -> new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(OVERWORLD_WOLFRAMITE_ORES.get(), 3)));
+            () -> new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(OVERWORLD_WOLFRAMITE_ORES.get(), WOLFRAMITE_VEINS_SIZE_SMALL.get())));
     public static final RegistryObject<ConfiguredFeature<?, ?>> WOLFRAMITE_VEIN_LARGE = CONFIGURED_FEATURES.register("wolframite_vein_large",
-            () -> new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(OVERWORLD_WOLFRAMITE_ORES.get(), 7)));
+            () -> new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(OVERWORLD_WOLFRAMITE_ORES.get(), WOLFRAMITE_VEINS_SIZE_LARGE.get())));
 
     public static void register(IEventBus eventBus){
         CONFIGURED_FEATURES.register(eventBus);

@@ -2,9 +2,9 @@
   "type": "minecraft:smelting",
   "cookingtime": 400,
   "experience": 2.8,
-  "group": "wolframium_ingot",
+  "group": "wolframite_dust",
   "ingredient": {
-    "item": "hongoz:raw_wolframite"
+    "item": "hongoz:wolframite_dust"
   },
   "result": "hongoz:wolframium_ingot"
 }
