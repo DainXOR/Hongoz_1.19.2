@@ -2,9 +2,11 @@ name: Test Branch Build Test
 
 on:
   push:
-    branches: [ "testing-bugfix" ]
+    branches: [ "development" ]
   pull_request:
-    branches: [ "testing-bugfix" ]
+    branches: [ "development" ]
+  workflow_dispatch:
+    
 
 permissions:
   contents: read
