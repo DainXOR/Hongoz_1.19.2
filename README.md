@@ -1,4 +1,4 @@
-# Hongoz
+# Hongoz [![CurseFoge](https://www.curseforge.com/minecraft/mc-mods/hongoz)]
 
 ## Release branch [![Build test](https://github.com/DainXOR/Hongoz_1.19.2/actions/workflows/main-action.yml/badge.svg?branch=release)](https://github.com/DainXOR/Hongoz_1.19.2/actions/workflows/main-action.yml)
 
