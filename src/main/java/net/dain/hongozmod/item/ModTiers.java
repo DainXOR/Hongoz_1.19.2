@@ -1,5 +1,6 @@
 package net.dain.hongozmod.item;
 
+import net.dain.hongozmod.tags.ModBlockTags;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.LazyLoadedValue;
@@ -105,7 +106,7 @@ public enum ModTiers implements Tier {
             case IRON -> BlockTags.NEEDS_IRON_TOOL;
             case DIAMOND -> BlockTags.NEEDS_DIAMOND_TOOL;
             case NETHERITE -> Tags.Blocks.NEEDS_NETHERITE_TOOL;
-            case WOLFRAMIUM -> ModTags.Blocks.NEEDS_WOLFRAMIUM_TOOL;
+            case WOLFRAMIUM -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
         };
     }
 }

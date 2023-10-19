@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.Block;
 import org.jetbrains.annotations.NotNull;
 
 public class ModBlockTags {
+    public static final TagKey<Block> NEEDS_WOLFRAMIUM_TOOL = create("needs_wolframium_tool");
     public static final TagKey<Block> MINEABLE_WITH_SWORD = create("mineable/sword");
 
 
