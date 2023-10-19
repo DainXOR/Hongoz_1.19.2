@@ -1,7 +1,7 @@
 modLoader="javafml"
 loaderVersion="[43,)"
 license="MIT License"
-issueTrackerURL="${github_page}/Hongoz_${mod_version}/issues"
+issueTrackerURL="${github_page}/Hongoz_${mc_version}/issues"
 
 [[mods]]
     modId="${mod_id}"

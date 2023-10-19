@@ -27,7 +27,7 @@ public class ModCommonConfig {
     public static final ForgeConfigSpec.ConfigValue<Float> MOBS_WEAKNESS_MULTIPLIER;
 
     static {
-        BUILDER.push("hongoz_common_config");
+        BUILDER.push("config");
 
         // Define configs
 

@@ -17,14 +17,14 @@ public class ModPlacedFeatures {
 
     public static final RegistryObject<PlacedFeature> WOLFRAMITE_ORE_PLACED = PLACED_FEATURES.register("wolframite_ore_placed",
             () -> new PlacedFeature(ModConfiguredFeatures.WOLFRAMITE_VEIN.getHolder().get(),
-                    commonOrePlacement(ModCommonConfig.WOLFRAMITE_SMALL_VEINS_PER_CHUNK.get(),
+                    commonOrePlacement(4, // ModCommonConfig.WOLFRAMITE_SMALL_VEINS_PER_CHUNK.get(),
                             HeightRangePlacement.triangle(
                                     VerticalAnchor.absolute(-60),
                                     VerticalAnchor.absolute(20)))));
 
     public static final RegistryObject<PlacedFeature> WOLFRAMITE_ORE_PLACED_LARGE = PLACED_FEATURES.register("wolframite_ore_placed_large",
             () -> new PlacedFeature(ModConfiguredFeatures.WOLFRAMITE_VEIN_LARGE.getHolder().get(),
-                    rareOrePlacement(ModCommonConfig.WOLFRAMITE_LARGE_VEINS_PER_CHUNK.get(),
+                    rareOrePlacement(2, //ModCommonConfig.WOLFRAMITE_LARGE_VEINS_PER_CHUNK.get(),
                             HeightRangePlacement.triangle(
                                     VerticalAnchor.absolute(-60),
                                     VerticalAnchor.absolute(-20)))));

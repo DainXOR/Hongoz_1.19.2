@@ -44,8 +44,8 @@ public class ModItems {
             () -> new ForgeSpawnEggItem(ModEntityTypes.HUNTER, 0x00d0c8, 0xd6c3aa,
                     new Item.Properties().tab(HongozTabs.MOBS_TAB)));
 
-    public static final RegistryObject<Item> HUNTER_TEST_SPAWN_EGG = ITEMS.register("hunter_test_spawn_egg",
-            () -> new ForgeSpawnEggItem(ModEntityTypes.HUNTER, 0xffa8a8, 0xd6d6d6,
+    public static final RegistryObject<Item> HUNTER_TEST_SPAWN_EGG = ITEMS.register("test_spawn_egg",
+            () -> new ForgeSpawnEggItem(ModEntityTypes.HUNTER, 0xc80000, 0x252525,
                     new Item.Properties().tab(HongozTabs.MOBS_TAB)));
 
     public static final RegistryObject<Item> HONZIADE_QUEEN_SPAWN_EGG = ITEMS.register("honziade_queen_spawn_egg",
@@ -87,42 +87,50 @@ public class ModItems {
 
     /* <><><><><><><><><><><><><><><><><><><><><><><><><><> Tools <><><><><><><><><><><><><><><><><><><><><><><><><><> */
 
+    public void a(){
+        //Items.STONE_SWORD
+    }
+
     public static final RegistryObject<Item> WOLFRAMIUM_SWORD = ITEMS.register(
             "wolframium_sword",
-            () -> new SwordItem(ModTiers.WOLFRAMIUM, 9, 2.5f,
+            () -> new SwordItem(ModTiers.WOLFRAMIUM, 3, 1.6f, // 4 - 2.7 = 1.3
                     new Item.Properties().tab(HongozTabs.WIP_TAB).rarity(Rarity.RARE)));
     public static final RegistryObject<Item> WOLFRAMIUM_PICKAXE = ITEMS.register(
             "wolframium_pickaxe",
-            () -> new PickaxeItem(ModTiers.WOLFRAMIUM, 8, 1.5f,
+            () -> new PickaxeItem(ModTiers.WOLFRAMIUM, 1, 1.2f,
                     new Item.Properties().tab(HongozTabs.WIP_TAB).rarity(Rarity.RARE)));
     public static final RegistryObject<Item> WOLFRAMIUM_AXE = ITEMS.register(
             "wolframium_axe",
-            () -> new AxeItem(ModTiers.WOLFRAMIUM, 11, 1.0f,
+            () -> new AxeItem(ModTiers.WOLFRAMIUM, 5, 1.0f,
                     new Item.Properties().tab(HongozTabs.WIP_TAB).rarity(Rarity.RARE)));
     public static final RegistryObject<Item> WOLFRAMIUM_SHOVEL = ITEMS.register(
             "wolframium_shovel",
-            () -> new ShovelItem(ModTiers.WOLFRAMIUM, 5, 2.0f,
+            () -> new ShovelItem(ModTiers.WOLFRAMIUM, 1.5f, 1.0f,
                     new Item.Properties().tab(HongozTabs.WIP_TAB).rarity(Rarity.RARE)));
     public static final RegistryObject<Item> WOLFRAMIUM_HOE = ITEMS.register(
             "wolframium_hoe",
-            () -> new HoeItem(ModTiers.WOLFRAMIUM, 3, 2.5f,
-                    new Item.Properties().tab(HongozTabs.TOOLS_TAB).rarity(Rarity.RARE)));
+            () -> new HoeItem(ModTiers.WOLFRAMIUM, -3, 4.0f,
+                    new Item.Properties().tab(HongozTabs.WIP_TAB).rarity(Rarity.RARE)));
 
-    public static final RegistryObject<Item> WOLFRAMIUM_GREATSWORD = ITEMS.register(
-            "wolframium_greatsword",
-            () -> new SwordItem(ModTiers.WOLFRAMIUM, 15, 1.1f,
+    public static final RegistryObject<Item> WOLFRAMIUM_GREAT_SWORD = ITEMS.register(
+            "wolframium_great_sword",
+            () -> new SwordItem(ModTiers.WOLFRAMIUM, 8, 1.1f,
                     new Item.Properties().tab(HongozTabs.TOOLS_TAB).rarity(Rarity.RARE)));
     public static final RegistryObject<Item> WOLFRAMIUM_WAR_PICK = ITEMS.register(
             "wolframium_war_pick",
-            () -> new PickaxeItem(ModTiers.WOLFRAMIUM, 10, 3.5f,
+            () -> new PickaxeItem(ModTiers.WOLFRAMIUM, 6, 1.5f,
                     new Item.Properties().tab(HongozTabs.WIP_TAB).rarity(Rarity.RARE)));
     public static final RegistryObject<Item> WOLFRAMIUM_GREAT_AXE = ITEMS.register(
             "wolframium_great_axe",
-            () -> new AxeItem(ModTiers.WOLFRAMIUM, 18, 0.9f,
+            () -> new AxeItem(ModTiers.WOLFRAMIUM, 10, 0.9f,
+                    new Item.Properties().tab(HongozTabs.WIP_TAB).rarity(Rarity.RARE)));
+    public static final RegistryObject<Item> WOLFRAMIUM_DWARVEN_AXE = ITEMS.register(
+            "wolframium_dwarven_axe",
+            () -> new AxeItem(ModTiers.WOLFRAMIUM, 7, 1.15f,
                     new Item.Properties().tab(HongozTabs.WIP_TAB).rarity(Rarity.RARE)));
     public static final RegistryObject<Item> WOLFRAMIUM_SCYTHE = ITEMS.register(
             "wolframium_scythe",
-            () -> new HoeItem(ModTiers.WOLFRAMIUM, 20, 0.7f,
+            () -> new HoeItem(ModTiers.WOLFRAMIUM, 1, 3.0f,
                     new Item.Properties().tab(HongozTabs.WIP_TAB).rarity(Rarity.RARE)));
 
     public static final RegistryObject<Item> WOLFRAMIUM_SHIELD = ITEMS.register(

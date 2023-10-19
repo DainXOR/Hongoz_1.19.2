@@ -19,6 +19,10 @@ import javax.annotation.Nullable;
 import org.jetbrains.annotations.NotNull;
 
 public class ModShieldItem extends TieredItem implements Vanishable {
+    public static final int EFFECTIVE_BLOCK_DELAY = 10;
+    public static final float MINIMUM_DURABILITY_DAMAGE = 1.0f;
+    public static final String TAG_BASE_COLOR = "Base";
+
     protected final int durability;
     protected Multimap<Attribute, AttributeModifier> defaultModifiers;
     ImmutableMultimap.Builder<Attribute, AttributeModifier> builder;
@@ -29,18 +33,23 @@ public class ModShieldItem extends TieredItem implements Vanishable {
         this.durability = tier.getUses() << 2;
 
         this.builder = ImmutableMultimap.builder();
-        this.builder.put(Attributes.ARMOR, new AttributeModifier("Armor", 0, AttributeModifier.Operation.ADDITION));
-        this.builder.put(Attributes.ARMOR_TOUGHNESS, new AttributeModifier("Armor toughness", 0, AttributeModifier.Operation.ADDITION));
-        this.builder.put(Attributes.KNOCKBACK_RESISTANCE, new AttributeModifier("Knock-back resistance", 0, AttributeModifier.Operation.ADDITION));
-        this.builder.put(Attributes.MAX_HEALTH, new AttributeModifier(BASE_ATTACK_SPEED_UUID, "Max health", 0, AttributeModifier.Operation.ADDITION));
+        this.builder.put(Attributes.ARMOR, new AttributeModifier("Shield modifier", 2.5f, AttributeModifier.Operation.ADDITION));
+        this.builder.put(Attributes.ARMOR_TOUGHNESS, new AttributeModifier("Shield modifier", 1.0f, AttributeModifier.Operation.ADDITION));
+        this.builder.put(Attributes.KNOCKBACK_RESISTANCE, new AttributeModifier("Shield modifier", 0.5f, AttributeModifier.Operation.ADDITION));
+        this.builder.put(Attributes.MAX_HEALTH, new AttributeModifier("Shield modifier", 6.0f, AttributeModifier.Operation.ADDITION));
+        this.builder.put(Attributes.MOVEMENT_SPEED, new AttributeModifier("Shield modifier", -0.03f, AttributeModifier.Operation.ADDITION));
+
+        this.defaultModifiers = builder.build();
     }
 
-    public ModShieldItem addAttribute(Attribute attribute, String name, double amount, @Nullable AttributeModifier.Operation operation){
-        this.builder.put(attribute, new AttributeModifier(name, amount, operation != null ? operation : AttributeModifier.Operation.ADDITION));
-        return this;
-    }
-    public void buildAttributes(){
+    public ModShieldItem addAttribute(Attribute attribute, double amount, @Nullable AttributeModifier.Operation operation){
+        this.builder.put(attribute, new AttributeModifier(
+                "Shield modifier",
+                amount,
+                operation != null ? operation : AttributeModifier.Operation.ADDITION));
+
         this.defaultModifiers = builder.build();
+        return this;
     }
 
     @Override
