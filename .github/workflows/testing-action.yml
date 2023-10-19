@@ -1,0 +1,27 @@
+name: Test Branch Build Test
+
+on:
+  push:
+    branches: [ "development" ]
+  pull_request:
+    branches: [ "development" ]
+  workflow_dispatch:
+    
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: windows-2019
+
+    steps:
+    - name: Compile
+      uses: Ruochenfu2011/compilation@v1
+      
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: Artifacts
+        path: ./build/libs
