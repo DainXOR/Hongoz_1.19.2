@@ -27,7 +27,6 @@ public class ModBlocks {
                     .requiresCorrectToolForDrops()
                     .explosionResistance(75f)),
             CreativeModeTab.TAB_BUILDING_BLOCKS);
-
     public static final RegistryObject<Block> DEEPSLATE_WOLFRAMITE_ORE = registerBlock("deepslate_wolframite_ore",
             () -> new DropExperienceBlock(BlockBehaviour.Properties.of(Material.STONE)
                     .strength(20f)
@@ -35,9 +34,39 @@ public class ModBlocks {
                     .requiresCorrectToolForDrops()
                     .explosionResistance(75f)),
             CreativeModeTab.TAB_BUILDING_BLOCKS);
-
     public static final RegistryObject<Block> WOLFRAMIUM_BLOCK = registerBlock("wolframium_block",
             () -> new Block(BlockBehaviour.Properties.of(Material.HEAVY_METAL)
+                    .strength(60f)
+                    .destroyTime(50f)
+                    .requiresCorrectToolForDrops()
+                    .explosionResistance(200f)
+            ),
+            CreativeModeTab.TAB_BUILDING_BLOCKS);
+
+    public static final RegistryObject<Block> BAUXITE_ORE = registerBlock("bauxite_ore",
+            () -> new DropExperienceBlock(BlockBehaviour.Properties.of(Material.STONE)
+                    .strength(20f)
+                    .destroyTime(30f)
+                    .requiresCorrectToolForDrops()
+                    .explosionResistance(75f)),
+            CreativeModeTab.TAB_BUILDING_BLOCKS);
+    public static final RegistryObject<Block> DEEPSLATE_BAUXITE_ORE = registerBlock("deepslate_bauxite_ore",
+            () -> new DropExperienceBlock(BlockBehaviour.Properties.of(Material.STONE)
+                    .strength(20f)
+                    .destroyTime(40f)
+                    .requiresCorrectToolForDrops()
+                    .explosionResistance(75f)),
+            CreativeModeTab.TAB_BUILDING_BLOCKS);
+    public static final RegistryObject<Block> CRYOLITE_BLOCK = registerBlock("cryolite_block",
+            () -> new Block(BlockBehaviour.Properties.of(Material.STONE)
+                    .strength(60f)
+                    .destroyTime(50f)
+                    .requiresCorrectToolForDrops()
+                    .explosionResistance(200f)
+            ),
+            CreativeModeTab.TAB_BUILDING_BLOCKS);
+    public static final RegistryObject<Block> ALUMINIUM_BLOCK = registerBlock("aluminium_block",
+            () -> new Block(BlockBehaviour.Properties.of(Material.METAL)
                     .strength(60f)
                     .destroyTime(50f)
                     .requiresCorrectToolForDrops()

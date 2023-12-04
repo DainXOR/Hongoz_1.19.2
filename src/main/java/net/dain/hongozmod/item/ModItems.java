@@ -3,6 +3,7 @@ package net.dain.hongozmod.item;
 import net.dain.hongozmod.HongozMod;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.item.custom.ModShieldItem;
+import net.dain.hongozmod.material.ModTiers;
 import net.dain.hongozmod.tab.HongozTabs;
 import net.minecraft.world.item.*;
 import net.minecraftforge.common.ForgeSpawnEggItem;
@@ -73,6 +74,59 @@ public class ModItems {
             () -> new Item(new Item.Properties()
                     .tab(HongozTabs.MATERIALS_TAB)
                     .rarity(Rarity.RARE)));
+    public static final RegistryObject<Item> WOLFRAMIUM_CARBIDE_INGOT = ITEMS.register(
+            "wolframium_carbide_ingot",
+            () -> new Item(new Item.Properties()
+                    .tab(HongozTabs.MATERIALS_TAB)
+                    .rarity(Rarity.RARE)));
+
+    public static final RegistryObject<Item> RAW_TITANIUM = ITEMS.register(
+            "raw_titanium",
+            () -> new Item(new Item.Properties()
+                    .tab(HongozTabs.MATERIALS_TAB)
+                    .rarity(Rarity.RARE)));
+    public static final RegistryObject<Item> TITANIUM_DUST = ITEMS.register(
+            "titanium_dust",
+            () -> new Item(new Item.Properties()
+                    .tab(HongozTabs.MATERIALS_TAB)
+                    .rarity(Rarity.RARE)));
+    public static final RegistryObject<Item> TITANIUM_INGOT = ITEMS.register(
+            "titanium_ingot",
+            () -> new Item(new Item.Properties()
+                    .tab(HongozTabs.MATERIALS_TAB)
+                    .rarity(Rarity.RARE)));
+    public static final RegistryObject<Item> TITANIUM_CARBIDE_INGOT = ITEMS.register(
+            "titanium_carbide_ingot",
+            () -> new Item(new Item.Properties()
+                    .tab(HongozTabs.MATERIALS_TAB)
+                    .rarity(Rarity.RARE)));
+
+    public static final RegistryObject<Item> BAUXITE = ITEMS.register(
+            "bauxite",
+            () -> new Item(new Item.Properties()
+                    .tab(HongozTabs.MATERIALS_TAB)
+                    .rarity(Rarity.COMMON)));
+    public static final RegistryObject<Item> BAUXITE_DUST = ITEMS.register(
+            "bauxite_dust",
+            () -> new Item(new Item.Properties()
+                    .tab(HongozTabs.MATERIALS_TAB)
+                    .rarity(Rarity.COMMON)));
+    public static final RegistryObject<Item> CRYOLITE_CRYSTAL = ITEMS.register(
+            "cryolite_crystal",
+            () -> new Item(new Item.Properties()
+                    .tab(HongozTabs.MATERIALS_TAB)
+                    .rarity(Rarity.COMMON)));
+    public static final RegistryObject<Item> ALUMINIUM_INGOT = ITEMS.register(
+            "aluminium_ingot",
+            () -> new Item(new Item.Properties()
+                    .tab(HongozTabs.MATERIALS_TAB)
+                    .rarity(Rarity.COMMON)));
+
+    public static final RegistryObject<Item> DURALUMINIUM_INGOT = ITEMS.register(
+            "duraluminium_ingot",
+            () -> new Item(new Item.Properties()
+                    .tab(HongozTabs.MATERIALS_TAB)
+                    .rarity(Rarity.COMMON)));
 
     public static final RegistryObject<Item> RAW_BISMUTH = ITEMS.register(
             "raw_bismuth",

@@ -4,6 +4,10 @@ import net.dain.hongozmod.HongozMod;
 import net.dain.hongozmod.entity.ModEntityTypes;
 import net.dain.hongozmod.entity.custom.*;
 import net.dain.hongozmod.entity.custom.hunter.HunterEntity;
+import net.dain.hongozmod.item.ModItems;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraftforge.event.AnvilUpdateEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -11,7 +15,14 @@ import net.minecraftforge.fml.common.Mod;
 public class ModEvents {
     @Mod.EventBusSubscriber(modid = HongozMod.MOD_ID)
     public static class ForgeEvents {
-
+        @SubscribeEvent
+        public static void anvilEvent(AnvilUpdateEvent event){
+            if(event.getLeft().is(ModItems.RAW_WOLFRAMITE.get()) && event.getRight().is(Items.COAL)){
+                ItemStack result = ModItems.WOLFRAMITE_DUST.get().getDefaultInstance();
+                result.setCount(2);
+                event.setOutput(result);
+            }
+        }
     }
 
     @Mod.EventBusSubscriber(modid = HongozMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
@@ -33,5 +44,8 @@ public class ModEvents {
             event.put(ModEntityTypes.HONZIADE_QUEEN.get(), HonziadeEntity.Queen.setAttributes());
 
         }
+
+
+
     }
 }

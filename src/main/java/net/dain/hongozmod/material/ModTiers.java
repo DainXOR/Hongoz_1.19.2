@@ -1,5 +1,6 @@
-package net.dain.hongozmod.item;
+package net.dain.hongozmod.material;
 
+import net.dain.hongozmod.item.ModItems;
 import net.dain.hongozmod.tags.ModBlockTags;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
@@ -13,14 +14,22 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 public enum ModTiers implements Tier {
-    WOOD(Tiers.WOOD, 0.7f, false),
-    STONE(Tiers.STONE, 2.5f, false),
-    IRON(Tiers.IRON, 7.9f, false),
-    DIAMOND(Tiers.DIAMOND, 3.5f, false),
-    GOLD(Tiers.GOLD, 19.3f, false),
-    NETHERITE(Tiers.NETHERITE, (GOLD.getDensity() * 4) + 3.2f /* Mafic lava */, true),
-    WOLFRAMIUM(6, 1 << 12, 11.0f, 19.25f, 9.0f, true, 32, () -> Ingredient.of(ModItems.WOLFRAMIUM_INGOT.get()));
+    WOOD(0f, Tiers.WOOD, 0.7f, false),
+    STONE(6f, Tiers.STONE, 2.5f, false),
+    IRON(4f, Tiers.IRON, 7.9f, false),
+    DIAMOND(10f, Tiers.DIAMOND, 3.5f, false),
+    GOLD(2.5f, Tiers.GOLD, 19.3f, false),
+    NETHERITE(7f, Tiers.NETHERITE, (GOLD.getDensity() * 3) + 3.2f /* Mafic lava */, true),
 
+    WOLFRAMIUM(7.5f, 2, 1827, 8.0f, 19.25f, 9.0f, true, 32, () -> Ingredient.of(ModItems.WOLFRAMIUM_INGOT.get())),
+    WOLFRAMIUM_CARBIDE(9f, 3, 4096, 10.0f, 19.25f, 9.0f, true, 32, () -> Ingredient.of(ModItems.WOLFRAMIUM_CARBIDE_INGOT.get())),
+    TITANIUM(6f, 2, 627, 8.0f, 4.5f, 3.0f, false, 32, () -> Ingredient.of(ModItems.TITANIUM_INGOT.get())),
+    TITANIUM_CARBIDE(9.5f, 4, 2437, 12.0f, 4.9f, 9.0f, true, 32, () -> Ingredient.of(ModItems.TITANIUM_CARBIDE_INGOT.get())),
+    ALUMINIUM(2.75f, 0, 72, 7.0f, 2.7f, 2.5f, false, 21, () -> Ingredient.of(ModItems.ALUMINIUM_INGOT.get())),
+    DURALUMINIUM(8f, 2, 834, 10.0f, 2.8f, 2.5f, false, 21, () -> Ingredient.of(ModItems.DURALUMINIUM_INGOT.get())),
+    ALUMINIUM_OXIDE(9f, 2, 834, 10.0f, 2.8f, 2.5f, true, 21, () -> Ingredient.of(ModItems.ALUMINIUM_INGOT.get()));
+
+    private final float hardness;
     private final int level;
     private final int uses;
     private final float speed;
@@ -32,6 +41,7 @@ public enum ModTiers implements Tier {
 
     /**
      * @param level                Mining level.
+     * @param hardness             Wiwilsi.
      * @param uses                 Base tool / armor uses.
      * @param speed                Mining speed. Check {@link Tiers} for reference.
      * @param density              Density of the material (grams / cubic meters).
@@ -39,7 +49,8 @@ public enum ModTiers implements Tier {
      * @param enchantmentValue     The "enchantability" of the material. Check {@link Tiers} for reference.
      * @param repairIngredient     Material used to repair items with this tier.
      */
-    private ModTiers(int level, int uses, float speed, float density, float damage, boolean fireResistant, int enchantmentValue, Supplier<Ingredient> repairIngredient) {
+    ModTiers(float hardness, int level, int uses, float speed, float density, float damage, boolean fireResistant, int enchantmentValue, Supplier<Ingredient> repairIngredient) {
+        this.hardness = hardness;
         this.level = level;
         this.uses = uses;
         this.speed = speed;
@@ -49,8 +60,9 @@ public enum ModTiers implements Tier {
         this.enchantmentValue = enchantmentValue;
         this.repairIngredient = new LazyLoadedValue<>(repairIngredient);
     }
-    private ModTiers(Tier tier, float density, boolean fireResistant){
+    ModTiers(float hardness, Tier tier, float density, boolean fireResistant){
         this(
+                hardness,
                 tier.getLevel(),
                 tier.getUses(),
                 tier.getSpeed(),
@@ -64,6 +76,8 @@ public enum ModTiers implements Tier {
     public int getLevel() {
         return this.level;
     }
+
+    public float getHardness(){return this.hardness; }
 
     public int getUses() {
         return this.uses;
@@ -107,6 +121,12 @@ public enum ModTiers implements Tier {
             case DIAMOND -> BlockTags.NEEDS_DIAMOND_TOOL;
             case NETHERITE -> Tags.Blocks.NEEDS_NETHERITE_TOOL;
             case WOLFRAMIUM -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
+            case WOLFRAMIUM_CARBIDE -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
+            case TITANIUM -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
+            case TITANIUM_CARBIDE -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
+            case ALUMINIUM -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
+            case DURALUMINIUM -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
+            case ALUMINIUM_OXIDE -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
         };
     }
 }

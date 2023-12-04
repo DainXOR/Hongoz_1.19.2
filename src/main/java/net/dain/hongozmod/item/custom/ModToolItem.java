@@ -2,22 +2,19 @@ package net.dain.hongozmod.item.custom;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
-import net.dain.hongozmod.item.ModTiers;
+import net.dain.hongozmod.material.ModTiers;
 import net.minecraft.core.BlockPos;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Tier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.TierSortingRegistry;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +52,7 @@ public class ModToolItem extends DiggerItem {
     }
 
     public float getDestroySpeed(@NotNull ItemStack stack, @NotNull BlockState state) {
-        return this.blocks.stream().anyMatch(state::is) ? this.speed : 1.0f;
+        return this.blocks.stream().anyMatch(state::is) ? this.digSpeed : 1.0f;
     }
 
     /**
@@ -73,15 +70,13 @@ public class ModToolItem extends DiggerItem {
      * Called when a {@link net.minecraft.world.level.block.Block} is destroyed using this Item. Return {@code true} to
      * trigger the "Use Item" statistic.
      */
-    public boolean mineBlock(@NotNull ItemStack pStack,
-                             @NotNull Level pLevel,
-                             @NotNull BlockState pState,
-                             @NotNull BlockPos pPos,
-                             @NotNull LivingEntity pEntityLiving) {
-        if (!pLevel.isClientSide && pState.getDestroySpeed(pLevel, pPos) != 0.0F) {
-            pStack.hurtAndBreak(1, pEntityLiving, (p_40992_) -> {
-                p_40992_.broadcastBreakEvent(EquipmentSlot.MAINHAND);
-            });
+    public boolean mineBlock(@NotNull ItemStack stack,
+                             @NotNull Level level,
+                             @NotNull BlockState state,
+                             @NotNull BlockPos pos,
+                             @NotNull LivingEntity entity) {
+        if (!level.isClientSide() && state.getDestroySpeed(level, pos) != 0.0F) {
+            stack.hurtAndBreak(1, entity, (holder) -> holder.broadcastBreakEvent(EquipmentSlot.MAINHAND));
         }
 
         return true;
@@ -100,9 +95,18 @@ public class ModToolItem extends DiggerItem {
 
     /**
      * Check whether this Item can harvest the given Block
+     * <p>
+     * FORGE: Use stack sensitive variant below
      */
-    @Deprecated // FORGE: Use stack sensitive variant below
-    public boolean isCorrectToolForDrops(@NotNull BlockState state) {
+    @Deprecated @Override
+    public boolean isCorrectToolForDrops(@NotNull BlockState state) throws RuntimeException {
+        try {
+            throw new RuntimeException();
+        } catch (RuntimeException e) {
+            throw new RuntimeException("Method is deprecated");
+        }
+
+        /*
         if (TierSortingRegistry.isTierSorted(getTier())) {
             return TierSortingRegistry.isCorrectTierForDrops(getTier(), state) && this.blocks.stream().anyMatch(state::is);
         }
@@ -114,6 +118,7 @@ public class ModToolItem extends DiggerItem {
         } else {
             return (i >= 1 || !state.is(BlockTags.NEEDS_STONE_TOOL)) && this.blocks.stream().anyMatch(state::is);
         }
+        */
     }
 
     // FORGE START

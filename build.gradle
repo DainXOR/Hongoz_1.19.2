@@ -6,11 +6,10 @@ plugins {
 }
 
 group = "net.dain.${mod_id}" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-version = "${mc_version}-${mod_version}"
+version = "${mod_version}-${mc_version}"
 archivesBaseName = "${mod_id}"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 
@@ -141,9 +140,12 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
-    //maven {
-    //    url "https://www.cursemaven.com"
-    //}
+    maven {
+        url "https://cursemaven.com"
+        content {
+            includeGroup "curse.maven"
+        }
+    }
 
     // Put repositories for dependencies here
     // ForgeGradle automatically adds the Forge maven and Maven Central for you
@@ -176,8 +178,6 @@ dependencies {
     // The userdev artifact is a special name and will get all sorts of transformations applied to it.
     minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
 
-    //implementation fg.deobf("curse.maven:sniffs-weapons-739757:4303757") // sniffs-weapons
-
     /* ---------------------------------------------------------------- Jei ---------------------------------------------------------------- */
 
     // compile against the JEI API but do not include it at runtime
@@ -187,6 +187,9 @@ dependencies {
     runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}-forge:${jei_version}")
 
     /* ---------------------------------------------------------------- Jei ---------------------------------------------------------------- */
+
+    //implementation fg.deobf("curse.maven:sniffs-weapons-739757:4303757") // sniffs-weapons
+    //implementation fg.deobf("curse.maven:anvilapi-634377:4027934") // anvil api
 
     // Real mod deobf dependency examples - these get remapped to your current mappings
     // compileOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}:api") // Adds JEI API as a compile dependency
