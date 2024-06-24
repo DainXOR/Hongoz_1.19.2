@@ -1,7 +1,5 @@
 package net.dain.hongozmod.material;
 
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.crafting.Ingredient;
 
 public interface Material {

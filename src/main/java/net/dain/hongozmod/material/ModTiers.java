@@ -22,12 +22,7 @@ public enum ModTiers implements Tier {
     NETHERITE(7f, Tiers.NETHERITE, (GOLD.getDensity() * 3) + 3.2f /* Mafic lava */, true),
 
     WOLFRAMIUM(7.5f, 2, 1827, 8.0f, 19.25f, 9.0f, true, 32, () -> Ingredient.of(ModItems.WOLFRAMIUM_INGOT.get())),
-    WOLFRAMIUM_CARBIDE(9f, 3, 4096, 10.0f, 19.25f, 9.0f, true, 32, () -> Ingredient.of(ModItems.WOLFRAMIUM_CARBIDE_INGOT.get())),
-    TITANIUM(6f, 2, 627, 8.0f, 4.5f, 3.0f, false, 32, () -> Ingredient.of(ModItems.TITANIUM_INGOT.get())),
-    TITANIUM_CARBIDE(9.5f, 4, 2437, 12.0f, 4.9f, 9.0f, true, 32, () -> Ingredient.of(ModItems.TITANIUM_CARBIDE_INGOT.get())),
-    ALUMINIUM(2.75f, 0, 72, 7.0f, 2.7f, 2.5f, false, 21, () -> Ingredient.of(ModItems.ALUMINIUM_INGOT.get())),
-    DURALUMINIUM(8f, 2, 834, 10.0f, 2.8f, 2.5f, false, 21, () -> Ingredient.of(ModItems.DURALUMINIUM_INGOT.get())),
-    ALUMINIUM_OXIDE(9f, 2, 834, 10.0f, 2.8f, 2.5f, true, 21, () -> Ingredient.of(ModItems.ALUMINIUM_INGOT.get()));
+    WOLFRAMIUM_CARBIDE(9f, 3, 4096, 10.0f, 19.25f, 9.0f, true, 32, () -> Ingredient.of(ModItems.WOLFRAMIUM_CARBIDE_INGOT.get()));
 
     private final float hardness;
     private final int level;
@@ -120,13 +115,7 @@ public enum ModTiers implements Tier {
             case IRON -> BlockTags.NEEDS_IRON_TOOL;
             case DIAMOND -> BlockTags.NEEDS_DIAMOND_TOOL;
             case NETHERITE -> Tags.Blocks.NEEDS_NETHERITE_TOOL;
-            case WOLFRAMIUM -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
-            case WOLFRAMIUM_CARBIDE -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
-            case TITANIUM -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
-            case TITANIUM_CARBIDE -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
-            case ALUMINIUM -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
-            case DURALUMINIUM -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
-            case ALUMINIUM_OXIDE -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
+            case WOLFRAMIUM, WOLFRAMIUM_CARBIDE -> ModBlockTags.NEEDS_WOLFRAMIUM_TOOL;
         };
     }
 }

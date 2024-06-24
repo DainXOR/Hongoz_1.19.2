@@ -42,7 +42,7 @@ public class HongozMod {
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, ModClientConfig.SPEC, "hongoz_config-client.toml");
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ModCommonConfig.SPEC, "hongoz_config-common.toml");
-        //ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ModServerConfig.SPEC, "hongoz_config-server.toml");
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, ModServerConfig.SPEC, "hongoz_config-server.toml");
 
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
@@ -58,8 +58,7 @@ public class HongozMod {
         MinecraftForge.EVENT_BUS.register(this);
     }
 
-    private void commonSetup(final FMLCommonSetupEvent event)
-    {
+    private void commonSetup(final FMLCommonSetupEvent event) {
         event.enqueueWork(() -> {
             
             SpawnPlacements.register(ModEntityTypes.ZHONGO.get(), SpawnPlacements.Type.ON_GROUND, Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
@@ -85,11 +84,9 @@ public class HongozMod {
 
     // You can use EventBusSubscriber to automatically register all static methods in the class annotated with @SubscribeEvent
     @Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
-    public static class ClientModEvents
-    {
+    public static class ClientModEvents {
         @SubscribeEvent
-        public static void onClientSetup(FMLClientSetupEvent event)
-        {
+        public static void onClientSetup(FMLClientSetupEvent event) {
             EntityRenderers.register(ModEntityTypes.FUNGI_EGG.get(), InfectedRenderer::new);
             EntityRenderers.register(ModEntityTypes.MAGGOT.get(), InfectedRenderer::new);
             EntityRenderers.register(ModEntityTypes.BEACON.get(), InfectedRenderer::new);
