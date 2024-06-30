@@ -4,6 +4,7 @@ import com.google.common.base.Suppliers;
 import net.dain.hongozmod.HongozMod;
 import net.dain.hongozmod.block.ModBlocks;
 import net.dain.hongozmod.config.ModCommonConfig;
+import net.dain.hongozmod.config.ModServerConfig;
 import net.minecraft.core.Registry;
 import net.minecraft.data.worldgen.features.OreFeatures;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
@@ -26,14 +27,23 @@ public class ModConfiguredFeatures {
             OreConfiguration.target(OreFeatures.DEEPSLATE_ORE_REPLACEABLES, ModBlocks.DEEPSLATE_WOLFRAMITE_ORE.get().defaultBlockState())
     ));
 
-    public static final RegistryObject<ConfiguredFeature<?, ?>> WOLFRAMITE_VEIN = CONFIGURED_FEATURES.register("wolframite_vein",
-            () -> new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(OVERWORLD_WOLFRAMITE_ORES.get(),
-                    3 //ModCommonConfig.WOLFRAMITE_VEINS_SIZE_SMALL.get()
-            )));
-    public static final RegistryObject<ConfiguredFeature<?, ?>> WOLFRAMITE_VEIN_LARGE = CONFIGURED_FEATURES.register("wolframite_vein_large",
-            () -> new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(OVERWORLD_WOLFRAMITE_ORES.get(),
-                    7 //ModCommonConfig.WOLFRAMITE_VEINS_SIZE_LARGE.get()
-            )));
+    public static final RegistryObject<ConfiguredFeature<?, ?>> WOLFRAMITE_VEIN = CONFIGURED_FEATURES.register(
+            "wolframite_vein",
+            () -> new ConfiguredFeature<>(
+                    Feature.ORE,
+                    new OreConfiguration(
+                            OVERWORLD_WOLFRAMITE_ORES.get(),
+                            ModServerConfig.WOLFRAMITE_VEINS_SIZE_SMALL.get() // 3
+                    )));
+
+    public static final RegistryObject<ConfiguredFeature<?, ?>> WOLFRAMITE_VEIN_LARGE = CONFIGURED_FEATURES.register(
+            "wolframite_vein_large",
+            () -> new ConfiguredFeature<>(
+                    Feature.ORE,
+                    new OreConfiguration(
+                            OVERWORLD_WOLFRAMITE_ORES.get(),
+                            ModServerConfig.WOLFRAMITE_VEINS_SIZE_LARGE.get() // 7
+                    )));
 
     public static void register(IEventBus eventBus){
         CONFIGURED_FEATURES.register(eventBus);

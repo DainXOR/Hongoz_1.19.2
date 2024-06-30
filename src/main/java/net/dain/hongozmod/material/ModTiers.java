@@ -17,7 +17,7 @@ public enum ModTiers implements Tier {
     WOOD(0f, Tiers.WOOD, 0.7f, false),
     STONE(6f, Tiers.STONE, 2.5f, false),
     IRON(4f, Tiers.IRON, 7.9f, false),
-    DIAMOND(10f, Tiers.DIAMOND, 3.5f, false),
+    DIAMOND(10f, Tiers.DIAMOND, 3.5f, true),
     GOLD(2.5f, Tiers.GOLD, 19.3f, false),
     NETHERITE(7f, Tiers.NETHERITE, (GOLD.getDensity() * 3) + 3.2f /* Mafic lava */, true),
 

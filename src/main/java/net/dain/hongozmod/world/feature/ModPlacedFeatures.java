@@ -2,6 +2,7 @@ package net.dain.hongozmod.world.feature;
 
 import net.dain.hongozmod.HongozMod;
 import net.dain.hongozmod.config.ModCommonConfig;
+import net.dain.hongozmod.config.ModServerConfig;
 import net.minecraft.core.Registry;
 import net.minecraft.world.level.levelgen.VerticalAnchor;
 import net.minecraft.world.level.levelgen.placement.*;
@@ -15,16 +16,22 @@ import java.util.List;
 public class ModPlacedFeatures {
     public static final DeferredRegister<PlacedFeature> PLACED_FEATURES = DeferredRegister.create(Registry.PLACED_FEATURE_REGISTRY, HongozMod.MOD_ID);
 
-    public static final RegistryObject<PlacedFeature> WOLFRAMITE_ORE_PLACED = PLACED_FEATURES.register("wolframite_ore_placed",
-            () -> new PlacedFeature(ModConfiguredFeatures.WOLFRAMITE_VEIN.getHolder().get(),
-                    commonOrePlacement(4, // ModCommonConfig.WOLFRAMITE_SMALL_VEINS_PER_CHUNK.get(),
+    public static final RegistryObject<PlacedFeature> WOLFRAMITE_ORE_PLACED = PLACED_FEATURES.register(
+            "wolframite_ore_placed",
+            () -> new PlacedFeature(
+                    ModConfiguredFeatures.WOLFRAMITE_VEIN.getHolder().get(),
+                    commonOrePlacement(
+                            ModServerConfig.WOLFRAMITE_SMALL_VEINS_PER_CHUNK.get(), // 4
                             HeightRangePlacement.triangle(
                                     VerticalAnchor.absolute(-60),
                                     VerticalAnchor.absolute(20)))));
 
-    public static final RegistryObject<PlacedFeature> WOLFRAMITE_ORE_PLACED_LARGE = PLACED_FEATURES.register("wolframite_ore_placed_large",
-            () -> new PlacedFeature(ModConfiguredFeatures.WOLFRAMITE_VEIN_LARGE.getHolder().get(),
-                    rareOrePlacement(2, //ModCommonConfig.WOLFRAMITE_LARGE_VEINS_PER_CHUNK.get(),
+    public static final RegistryObject<PlacedFeature> WOLFRAMITE_ORE_PLACED_LARGE = PLACED_FEATURES.register(
+            "wolframite_ore_placed_large",
+            () -> new PlacedFeature(
+                    ModConfiguredFeatures.WOLFRAMITE_VEIN_LARGE.getHolder().get(),
+                    rareOrePlacement(
+                            ModServerConfig.WOLFRAMITE_LARGE_VEINS_PER_CHUNK.get(), // 2
                             HeightRangePlacement.triangle(
                                     VerticalAnchor.absolute(-60),
                                     VerticalAnchor.absolute(-20)))));
